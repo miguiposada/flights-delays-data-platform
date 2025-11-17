@@ -7,6 +7,16 @@ from pyspark.sql import SparkSession
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 import logging
+import json
+import dbutils
+# Leer el valor del widget
+param_str = dbutils.widgets.get("parametros")
+param_list = json.loads(param_str)
+
+print(param_list)
+
+
+
 
 # Configuración de logging
 logging.basicConfig(
@@ -103,8 +113,11 @@ def bronze_ingestion(storage_account_name,storage_account_access_key):
 
 def main():
     try:
-        
         logging.info("- El cluster ha arrancado y el proceso va a iniciar")
+
+
+        logging.info(f"El secret_name es: '{nombre}'_________")
+
         key_vault_name = "databrickslearningkvmp "
         secret_name = "databrickslearningsecretmp-accesskey"
 
@@ -112,7 +125,7 @@ def main():
         storage_account_access_key=read_azure_secret(key_vault_name, secret_name)
 
         logging.info(f"El secreto es: '{storage_account_access_key}'")
-        
+
         bronze_ingestion(storage_account_name, storage_account_access_key)
     except Exception as e:
         logging.error(f"Ocurrió un error: {e}")

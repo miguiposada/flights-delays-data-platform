@@ -1,4 +1,3 @@
-
 #Importamos las librerias
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
@@ -13,7 +12,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
-
+import json
 logging.info("-Se han importado las librerias")
 import sys
 print(sys.argv)
@@ -92,8 +91,6 @@ def main():
         configJSON = readJsonFromBlob(storage_account_name, config_container,config_blob_path,storage_account_access_key)
         logging.info(f"El configJSON es: {configJSON}")
 
-        logging.info(f"El output_path es: {configJSON['output_path']}")
-        storage_account_name=configJSON['dataset_container_name']
         gold_aggregation(storage_account_name, storage_account_access_key,
                         configJSON['dataset_container_name'],configJSON['dataset_input_path'],configJSON['dataset_output_path'])
 

@@ -26,7 +26,7 @@ def bronze_ingestion(storage_account_name,storage_account_access_key,dataset_con
     try:
 
         spark = SparkSession.builder.appName("ExtraccionDatabronze_ingestionbricks").getOrCreate()
-        
+        logging.info("- Se ha creado la sesion de spark")
         # --------------------------------------------
         # CONFIGURACIÓN DE ACCESO A BLOB STORAGE
         # --------------------------------------------
@@ -36,11 +36,11 @@ def bronze_ingestion(storage_account_name,storage_account_access_key,dataset_con
             storage_account_access_key
         )
 
-        logging.info("- Se han establecido los paths para la lectura de los archivos")
-
+        
         #Leemos df
         raw_input_path=f"wasbs://{dataset_container_name}@{storage_account_name}.blob.core.windows.net/{dataset_input_path}"
-
+        logging.info(f"- Se va a proceder a leer el archivo de entrada del path {raw_input_path}")
+        
         df_raw=spark.read.format("parquet") \
           .option("header", "true") \
           .option("inferSchema", "true") \
@@ -49,7 +49,7 @@ def bronze_ingestion(storage_account_name,storage_account_access_key,dataset_con
         df_raw.show(5)        # Muestra las primeras 5 filas
         df_raw.printSchema()  # Muestra el esquema del DataFrame
 
-        logging.info("- Se ha leido el dataset correspondiente")
+        logging.info(f"- Se ha leido el dataset {raw_input_path} ")
 
 
         # Agregar columnas de metadatos: fecha de ingesta, nombre del archivo, etc.
@@ -63,7 +63,7 @@ def bronze_ingestion(storage_account_name,storage_account_access_key,dataset_con
 
         logging.info("- Se ha añadido la columna ingestion_date al dataset")
 
-        logging.info("- Se va a proceder a guardar el archivo correspondiente en el ruta deseada")
+        logging.info(f"- Se va a proceder a guardar el archivo correspondiente en el ruta {dataset_output_path}")
 
         #Guardamos como parquet
         output_path=f"wasbs://{dataset_container_name}@{storage_account_name}.blob.core.windows.net/{dataset_output_path}"
@@ -98,9 +98,7 @@ def main():
         
         configJSON = readJsonFromBlob(storage_account_name, config_container,config_blob_path,storage_account_access_key)
         logging.info(f"El configJSON es: {configJSON}")
-        dataset_output_path=configJSON["dataset_output_path"]
-        logging.info(f"El output_path es: {dataset_output_path}")
-        storage_account_name=configJSON['dataset_container_name']
+
         bronze_ingestion(storage_account_name, storage_account_access_key,
                         configJSON['dataset_container_name'],configJSON['dataset_input_path'],configJSON['dataset_output_path'])
 

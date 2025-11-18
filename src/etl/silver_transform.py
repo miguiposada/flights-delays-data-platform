@@ -187,7 +187,7 @@ def main():
         logging.info(f"El configJSON es: {configJSON}")
 
 
-        silver_transformn(storage_account_name, storage_account_access_key,
+        silver_transform(storage_account_name, storage_account_access_key,
                         configJSON['dataset_container_name'],configJSON['dataset_input_path'],configJSON['dataset_output_path'])
 
     except Exception as e:

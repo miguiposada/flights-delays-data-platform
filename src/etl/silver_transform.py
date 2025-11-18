@@ -139,10 +139,10 @@ def silver_transform(storage_account_name,storage_account_access_key,dataset_con
 
 
 
-        logging.info("- Se va a proceder a guardar el archivo correspondiente en el ruta deseada")
-
+        
         #Guardamos como parquet
         output_path=f"wasbs://{dataset_container_name}@{storage_account_name}.blob.core.windows.net/{dataset_output_path}"
+        logging.info(f"- Se va a proceder a guardar el archivo correspondiente en : {output_path}")
 
         # Escribe el DataFrame en formato Parquet
         df_output.write.format("parquet") \
@@ -184,7 +184,7 @@ def main():
         config_container = sys.argv[4]
         config_blob_path = sys.argv[5]        
 
-        configJSON = readJsonFromBlob(storage_account_name, "databricks-projects","Flight_Delays/config/bronze_ingestion_config.json",storage_account_access_key)
+        configJSON = readJsonFromBlob(storage_account_name, config_container,config_blob_path,storage_account_access_key)
         logging.info(f"El configJSON es: {configJSON}")
 
 

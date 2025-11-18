@@ -98,8 +98,8 @@ def main():
         
         configJSON = readJsonFromBlob(storage_account_name, config_container,config_blob_path,storage_account_access_key)
         logging.info(f"El configJSON es: {configJSON}")
-
-        logging.info(f"El output_path es: {configJSON['output_path']}")
+        output_path=configJSON["output_path"]
+        logging.info(f"El output_path es: {output_path}")
         storage_account_name=configJSON['dataset_container_name']
         bronze_ingestion(storage_account_name, storage_account_access_key,
                         configJSON['dataset_container_name'],configJSON['dataset_input_path'],configJSON['dataset_output_path'])

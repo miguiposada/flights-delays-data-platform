@@ -7,7 +7,6 @@ from pyspark.sql.types import *
 from pyspark.sql import SparkSession
 
 from utils.read_json_from_blob import readJsonFromBlob
-from utils.read_azure_secret import readAzureSecret
 
 import logging
 # Configuración de logging

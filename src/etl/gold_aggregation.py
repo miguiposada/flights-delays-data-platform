@@ -46,7 +46,7 @@ def gold_aggregation(storage_account_name,storage_account_access_key,dataset_con
         df_input.printSchema()  # Muestra el esquema del DataFrame
 
         logging.info("- Se ha leido el dataset correspondiente")
-        display(df_input.limit(10))
+        
 
 
 
@@ -60,7 +60,7 @@ def gold_aggregation(storage_account_name,storage_account_access_key,dataset_con
             avg("TaxiIn").alias("avg_taxi_in")
         )
 
-        display(df_output.limit(10))
+        df_output.show(10)  
 
 
 

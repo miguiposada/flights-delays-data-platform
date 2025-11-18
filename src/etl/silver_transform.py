@@ -45,6 +45,8 @@ def silver_transform(storage_account_name,storage_account_access_key,dataset_con
           .option("header", "true") \
           .option("inferSchema", "true") \
           .load(input_path)
+        
+        logging.info(f"El dataset de entrada tiene: {df_input.count()} filas")
 
         df_input.show(5)        # Muestra las primeras 5 filas
         df_input.printSchema()  # Muestra el esquema del DataFrame
@@ -55,45 +57,45 @@ def silver_transform(storage_account_name,storage_account_access_key,dataset_con
 
         #Vamos a establecer el esquema
         schema_df_input = StructType([
-    StructField("ingestion_date", DateType(), True),
-    StructField("Year", LongType(), True),
-    StructField("Month", LongType(), True),
-    StructField("DayofMonth", LongType(), True),
-    StructField("FlightDate", DateType(), True),
-
-    StructField("Marketing_Airline_Network", StringType(), True),
-    StructField("OriginCityName", StringType(), True),
-    StructField("DestCityName", StringType(), True),
-
-    StructField("CRSDepTime", LongType(), True),
-    StructField("DepTime", LongType(), True),
-    StructField("DepDelay", DoubleType(), True),
-    StructField("DepDelayMinutes", DoubleType(), True),
-
-    StructField("TaxiOut", DoubleType(), True),
-    StructField("WheelsOff", LongType(), True),
-    StructField("WheelsOn", LongType(), True),
-    StructField("TaxiIn", DoubleType(), True),
-
-    StructField("CRSArrTime", LongType(), True),
-    StructField("ArrTime", LongType(), True),
-    StructField("ArrDelay", DoubleType(), True),
-    StructField("ArrDelayMinutes", DoubleType(), True),
-
-    StructField("CRSElapsedTime", DoubleType(), True),
-    StructField("ActualElapsedTime", DoubleType(), True),
-    StructField("AirTime", DoubleType(), True),
-    StructField("Distance", DoubleType(), True),
-    StructField("DistanceGroup", LongType(), True),
-
-    StructField("CarrierDelay", DoubleType(), True),
-    StructField("WeatherDelay", DoubleType(), True),
-    StructField("NASDelay", DoubleType(), True),
-    StructField("SecurityDelay", DoubleType(), True),
-    StructField("LateAircraftDelay", DoubleType(), True),
-
-    StructField("__index_level_0__", LongType(), True)   # índice auxiliar (si proviene de pandas)
-])
+            StructField("ingestion_date", DateType(), True),
+            StructField("Year", LongType(), True),
+            StructField("Month", LongType(), True),
+            StructField("DayofMonth", LongType(), True),
+            StructField("FlightDate", DateType(), True),
+        
+            StructField("Marketing_Airline_Network", StringType(), True),
+            StructField("OriginCityName", StringType(), True),
+            StructField("DestCityName", StringType(), True),
+        
+            StructField("CRSDepTime", LongType(), True),
+            StructField("DepTime", LongType(), True),
+            StructField("DepDelay", DoubleType(), True),
+            StructField("DepDelayMinutes", DoubleType(), True),
+        
+            StructField("TaxiOut", DoubleType(), True),
+            StructField("WheelsOff", LongType(), True),
+            StructField("WheelsOn", LongType(), True),
+            StructField("TaxiIn", DoubleType(), True),
+        
+            StructField("CRSArrTime", LongType(), True),
+            StructField("ArrTime", LongType(), True),
+            StructField("ArrDelay", DoubleType(), True),
+            StructField("ArrDelayMinutes", DoubleType(), True),
+        
+            StructField("CRSElapsedTime", DoubleType(), True),
+            StructField("ActualElapsedTime", DoubleType(), True),
+            StructField("AirTime", DoubleType(), True),
+            StructField("Distance", DoubleType(), True),
+            StructField("DistanceGroup", LongType(), True),
+        
+            StructField("CarrierDelay", DoubleType(), True),
+            StructField("WeatherDelay", DoubleType(), True),
+            StructField("NASDelay", DoubleType(), True),
+            StructField("SecurityDelay", DoubleType(), True),
+            StructField("LateAircraftDelay", DoubleType(), True),
+        
+            StructField("__index_level_0__", LongType(), True)   # índice auxiliar (si proviene de pandas)
+        ])
         #Aplicamos el schema
         for field in schema_df_input.fields:
             if field.name in df_input.columns:

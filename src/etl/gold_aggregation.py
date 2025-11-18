@@ -41,6 +41,8 @@ def gold_aggregation(storage_account_name,storage_account_access_key,dataset_con
           .option("header", "true") \
           .option("inferSchema", "true") \
           .load(input_path)
+        
+        logging.info(f"El dataset de entrada tiene: {df_input.count()} filas")
 
         df_input.show(5)        # Muestra las primeras 5 filas
         df_input.printSchema()  # Muestra el esquema del DataFrame
@@ -64,6 +66,7 @@ def gold_aggregation(storage_account_name,storage_account_access_key,dataset_con
 
 
 
+        logging.info(f"El dataset de salida tiene: {df_output.count()} filas")
 
         logging.info("- Se va a proceder a guardar el archivo correspondiente en el ruta deseada")
 

@@ -45,6 +45,8 @@ def bronze_ingestion(storage_account_name,storage_account_access_key,dataset_con
           .option("header", "true") \
           .option("inferSchema", "true") \
           .load(raw_input_path)
+        
+        logging.info(f"El dataset de entrada tiene: {df_raw.count()} filas")
 
         df_raw.show(5)        # Muestra las primeras 5 filas
         df_raw.printSchema()  # Muestra el esquema del DataFrame
@@ -62,6 +64,7 @@ def bronze_ingestion(storage_account_name,storage_account_access_key,dataset_con
         df_output.printSchema()
 
         logging.info("- Se ha añadido la columna ingestion_date al dataset")
+        logging.info(f"El dataset de salida tiene: {df_output.count()} filas")
 
         logging.info(f"- Se va a proceder a guardar el archivo correspondiente en el ruta {dataset_output_path}")
 

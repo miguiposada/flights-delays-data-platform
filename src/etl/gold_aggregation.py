@@ -52,7 +52,7 @@ def gold_aggregation(storage_account_name,storage_account_access_key,dataset_con
 
         #Agregaciones
 
-        df_grouped = df_input.groupBy("Year", "Month", "DayofMonth","OriginCityName","DestCityName").agg(
+        df_output = df_input.groupBy("Year", "Month", "DayofMonth","OriginCityName","DestCityName").agg(
             count("*").alias("flights_count"),
             avg("DepDelayMinutes").alias("avg_dep_delay_minutes"),
             sum(when(col("ArrDelayMinutes") > 15, 1).otherwise(0)).alias("% vuelos con delay >15min"),
@@ -60,7 +60,7 @@ def gold_aggregation(storage_account_name,storage_account_access_key,dataset_con
             avg("TaxiIn").alias("avg_taxi_in")
         )
 
-        display(df_grouped.limit(10))
+        display(df_output.limit(10))
 
 
 

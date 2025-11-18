@@ -35,22 +35,32 @@ def gold_aggregation(storage_account_name,storage_account_access_key,dataset_con
         logging.info("- Se han establecido los paths para la lectura de los archivos")
 
         #Leemos df
-        raw_input_path=f"wasbs://{dataset_container_name}@{storage_account_name}.blob.core.windows.net/{dataset_input_path}"
+        input_path=f"wasbs://{dataset_container_name}@{storage_account_name}.blob.core.windows.net/{dataset_input_path}"
 
-        df_raw=spark.read.format("parquet") \
+        df_input=spark.read.format("parquet") \
           .option("header", "true") \
           .option("inferSchema", "true") \
-          .load(raw_input_path)
+          .load(input_path)
 
-        df_raw.show(5)        # Muestra las primeras 5 filas
-        df_raw.printSchema()  # Muestra el esquema del DataFrame
+        df_input.show(5)        # Muestra las primeras 5 filas
+        df_input.printSchema()  # Muestra el esquema del DataFrame
 
         logging.info("- Se ha leido el dataset correspondiente")
+        display(df_input.limit(10))
 
 
 
+        #Agregaciones
 
+        df_grouped = df_input.groupBy("Year", "Month", "DayofMonth","OriginCityName","DestCityName").agg(
+            count("*").alias("flights_count"),
+            avg("DepDelayMinutes").alias("avg_dep_delay_minutes"),
+            sum(when(col("ArrDelayMinutes") > 15, 1).otherwise(0)).alias("% vuelos con delay >15min"),
+            avg("TaxiOut").alias("avg_taxi_out"),
+            avg("TaxiIn").alias("avg_taxi_in")
+        )
 
+        display(df_grouped.limit(10))
 
 
 
@@ -64,6 +74,8 @@ def gold_aggregation(storage_account_name,storage_account_access_key,dataset_con
         df_output.write.format("parquet") \
           .mode("overwrite") \
           .save(output_path)
+
+        logging.info(f"- Se ha guardado con exito el archivo en  {output_path}")
 
     except Exception as e:
         logging.error(f"Ocurrió un error al extraer los datos: {e}")

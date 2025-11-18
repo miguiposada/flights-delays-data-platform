@@ -72,6 +72,9 @@ def bronze_ingestion(storage_account_name,storage_account_access_key,dataset_con
         df_output.write.format("parquet") \
           .mode("overwrite") \
           .save(output_path)
+        
+        logging.info(f"- Se ha guardado con exito el archivo en  {output_path}")
+
 
     except Exception as e:
         logging.error(f"Ocurrió un error al extraer los datos: {e}")

@@ -39,12 +39,12 @@ def silver_transform(storage_account_name,storage_account_access_key,dataset_con
         logging.info("- Se han establecido los paths para la lectura de los archivos")
 
         #Leemos df
-        raw_input_path=f"wasbs://{dataset_container_name}@{storage_account_name}.blob.core.windows.net/{dataset_input_path}"
+        input_path=f"wasbs://{dataset_container_name}@{storage_account_name}.blob.core.windows.net/{dataset_input_path}"
 
         df_input=spark.read.format("parquet") \
           .option("header", "true") \
           .option("inferSchema", "true") \
-          .load(raw_input_path)
+          .load(input_path)
 
         df_input.show(5)        # Muestra las primeras 5 filas
         df_input.printSchema()  # Muestra el esquema del DataFrame
@@ -148,6 +148,7 @@ def silver_transform(storage_account_name,storage_account_access_key,dataset_con
         df_output.write.format("parquet") \
           .mode("overwrite") \
           .save(output_path)
+        logging.info(f"- Se ha guardado con exito el archivo en  {output_path}")
 
     except Exception as e:
         logging.error(f"Ocurrió un error al extraer los datos: {e}")

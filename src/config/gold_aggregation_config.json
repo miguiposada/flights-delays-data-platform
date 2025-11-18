@@ -1,0 +1,12 @@
+{
+    "variablesEntrada":{
+        "key_vault_name":"databrickslearningkvmp",
+        "storage_account_name":"databrickslearningsamp",
+        "config_container":"databricks-projects",
+        "config_blob_path":"Flight_Delays/config/gold_ingestion_config.json"
+    },
+    "variablesEntorno":{},
+    "container_name":"databricks-projects",
+    "input_path":"Flight_Delays/data/silver/Flight_Delay_silver.parquet",
+    "output_path":"Flight_Delays/data/gold/Flight_Delay_gold.parquet"
+}

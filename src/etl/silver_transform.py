@@ -22,7 +22,7 @@ print(sys.argv)
 
 
 
-def silver_transform(storage_account_name,storage_account_access_key):
+def silver_transform(storage_account_name,storage_account_access_key,dataset_container_name,dataset_input_path,dataset_output_path):
     try:
 
         spark = SparkSession.builder.appName("ExtraccionDatasilver_transform").getOrCreate()
@@ -30,9 +30,6 @@ def silver_transform(storage_account_name,storage_account_access_key):
         # --------------------------------------------
         # CONFIGURACIÓN DE ACCESO A BLOB STORAGE
         # --------------------------------------------
-        container_name = "databricks-projects"
-
-
         # Configurar Spark para acceder a Blob Storage
         spark.conf.set(
             f"fs.azure.account.key.{storage_account_name}.blob.core.windows.net",
@@ -42,8 +39,7 @@ def silver_transform(storage_account_name,storage_account_access_key):
         logging.info("- Se han establecido los paths para la lectura de los archivos")
 
         #Leemos df
-        relative_input_folder_path="Flight_Delays/data/raw/Flight_Delay.parquet"
-        raw_input_path=f"wasbs://{container_name}@{storage_account_name}.blob.core.windows.net/{relative_input_folder_path}"
+        raw_input_path=f"wasbs://{dataset_container_name}@{storage_account_name}.blob.core.windows.net/{dataset_input_path}"
 
         df_input=spark.read.format("parquet") \
           .option("header", "true") \
@@ -138,16 +134,15 @@ def silver_transform(storage_account_name,storage_account_access_key):
             "is_delayed_15",
             when(col("ArrDelayMinutes") >= 15, 1).otherwise(0)
         )
-        print('El numero total de filas antes de la limpieza es: ',df_input.count())
-        print('El numero total de filas despues de la limpieza es: ',df_output.count())
+        logging.info(f"El numero total de filas antes de la limpieza es: {df_input.count()} ")
+        logging.info(f"El numero total de filas despues de la limpieza es: {df_output.count()}")
 
 
 
         logging.info("- Se va a proceder a guardar el archivo correspondiente en el ruta deseada")
 
         #Guardamos como parquet
-        relative_output_folder_path="Flight_Delays/data/bronze/Flight_Delay_bronze.parquet"
-        output_path=f"wasbs://{container_name}@{storage_account_name}.blob.core.windows.net/{relative_output_folder_path}"
+        output_path=f"wasbs://{dataset_container_name}@{storage_account_name}.blob.core.windows.net/{dataset_output_path}"
 
         # Escribe el DataFrame en formato Parquet
         df_output.write.format("parquet") \
@@ -181,17 +176,20 @@ def main():
         logging.info(f"El key_vault_name es: {key_vault_name} y el secret_name es: '{secret_name}'")
 
         
-        storage_account_access_key=read_azure_secret(key_vault_name, secret_name)
-
-
+        storage_account_access_key=readAzureSecret(key_vault_name, secret_name)
         logging.info(f"El secreto es: '{storage_account_access_key}'")
-        storage_account_name = "databrickslearningsamp"
-        configJSON = read_json_from_blob(storage_account_name, "databricks-projects","Flight_Delays/config/bronze_ingestion_config.json",storage_account_access_key)
+
+        storage_account_name = sys.argv[3]
+        config_container = sys.argv[4]
+        config_blob_path = sys.argv[5]        
+
+        configJSON = readJsonFromBlob(storage_account_name, "databricks-projects","Flight_Delays/config/bronze_ingestion_config.json",storage_account_access_key)
         logging.info(f"El configJSON es: {configJSON}")
 
 
+        silver_transformn(storage_account_name, storage_account_access_key,
+                        configJSON['dataset_container_name'],configJSON['dataset_input_path'],configJSON['dataset_output_path'])
 
-        silver_transform(storage_account_name, storage_account_access_key)
     except Exception as e:
         logging.error(f"Ocurrió un error: {e}")
 

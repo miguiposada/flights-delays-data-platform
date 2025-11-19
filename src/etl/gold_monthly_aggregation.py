@@ -66,7 +66,7 @@ def gold_aggregation(storage_account_name,storage_account_access_key,dataset_con
             sum(when((col("DepDelayMinutes") > 0) | (col("ArrDelayMinutes") > 0), 1).otherwise(0)) *100/ col("Total_Flights").alias("Delay_Rate(%)"),
             avg(col("DepDelayMinutes")).alias("Average_Departure_Delay(min)"),
             avg(col("ArrDelayMinutes")).alias("Average_Arrival_Delay(min)"),
-            sum("Distance").alias("Average_Distance(miles)")
+            sum(col("Distance")).alias("Average_Distance(miles)")
         )
 
         df_output.show(10)  

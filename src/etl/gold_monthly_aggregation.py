@@ -62,11 +62,11 @@ def gold_aggregation(storage_account_name,storage_account_access_key,dataset_con
         # Esta tabla agrega los datos a un nivel superior para un análisis de tendencias de alto nivel.
         df_output = df_input.groupBy("Year", "Month", "Marketing_Airline_Network").agg(
             count("*").alias("Total_Flights"),
-            when((col("DepDelayMinutes") > 0) | (col("ArrDelayMinutes") > 0), 1).otherwise(0).alias("Delay_Flights"),
-            col("Delay_Flights") *100/ col("Total_Flights").alias("Delay_Rate(%)"),
+            sum(when((col("DepDelayMinutes") > 0) | (col("ArrDelayMinutes") > 0), 1).otherwise(0)).alias("Delay_Flights"),
+            sum(when((col("DepDelayMinutes") > 0) | (col("ArrDelayMinutes") > 0), 1).otherwise(0)) *100/ col("Total_Flights").alias("Delay_Rate(%)"),
             avg(col("DepDelayMinutes")).alias("Average_Departure_Delay(min)"),
             avg(col("ArrDelayMinutes")).alias("Average_Arrival_Delay(min)"),
-            sum("Distance").alias("Average_Distance(miles)"),
+            sum("Distance").alias("Average_Distance(miles)")
         )
 
         df_output.show(10)  

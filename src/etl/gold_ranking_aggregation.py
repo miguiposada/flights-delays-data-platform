@@ -64,8 +64,8 @@ def gold_aggregation(storage_account_name,storage_account_access_key,dataset_con
             count("*").alias("Total_Flights_per_route"),
             avg(col("DepDelayMinutes") + col("ArrDelayMinutes")).alias("AverageOverallDelay(min)"),
             avg(col("AirTime")).alias("AverageAirTime(min)"),
-            when((col("DepDelayMinutes") > 0) | (col("ArrDelayMinutes") > 0), 1).otherwise(0).alias("Delay_Flights_per_route"),
-            col("Delay_Flights") *100/ col("Total_Flights_per_route").alias("Delay_Rate(%)"),
+            sum(when((col("DepDelayMinutes") > 0) | (col("ArrDelayMinutes") > 0), 1).otherwise(0)).alias("Delay_Flights_per_route"),
+            sum(when((col("DepDelayMinutes") > 0) | (col("ArrDelayMinutes") > 0), 1).otherwise(0)) *100/ col("Total_Flights_per_route").alias("Delay_Rate(%)"),
             sum("Distance").alias("Average_Distance(miles)")
         )
 

@@ -1,5 +1,6 @@
 import sys
 
+from datetime import datetime
 
 #Importamos las librerias
 from pyspark.sql.functions import *
@@ -65,9 +66,11 @@ def bronze_ingestion(storage_account_name,storage_account_access_key,dataset_con
 
         logging.info("- Se ha añadido la columna ingestion_date al dataset")
         logging.info(f"El dataset de salida tiene: {df_output.count()} filas")
-
+        
+        ingestion_date = datetime.now().strftime("%Y_%m_%d")
+        dataset_output_path = dataset_output_path.replace('YYYY_MM_DD', ingestion_date)
         logging.info(f"- Se va a proceder a guardar el archivo correspondiente en el ruta {dataset_output_path}")
-
+        
         #Guardamos como parquet
         output_path=f"wasbs://{dataset_container_name}@{storage_account_name}.blob.core.windows.net/{dataset_output_path}"
 

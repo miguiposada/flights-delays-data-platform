@@ -13,6 +13,8 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 import json
+
+from datetime import datetime
 logging.info("-Se han importado las librerias")
 import sys
 print(sys.argv)
@@ -22,7 +24,7 @@ def gold_aggregation(storage_account_name,storage_account_access_key,dataset_con
     try:
 
         spark = SparkSession.builder.appName("ExtraccionDatagold_aggregationbricks").getOrCreate()
-        
+        ingestion_date = datetime.now().strftime("%Y_%m_%d")
         # --------------------------------------------
         # CONFIGURACIÓN DE ACCESO A BLOB STORAGE
         # --------------------------------------------
@@ -35,6 +37,8 @@ def gold_aggregation(storage_account_name,storage_account_access_key,dataset_con
         logging.info("- Se han establecido los paths para la lectura de los archivos")
 
         #Leemos df
+        dataset_input_path = dataset_input_path.replace('YYYY_MM_DD', ingestion_date)
+        
         input_path=f"wasbs://{dataset_container_name}@{storage_account_name}.blob.core.windows.net/{dataset_input_path}"
 
         df_input=spark.read.format("parquet") \
@@ -71,6 +75,7 @@ def gold_aggregation(storage_account_name,storage_account_access_key,dataset_con
         logging.info("- Se va a proceder a guardar el archivo correspondiente en el ruta deseada")
 
         #Guardamos como parquet
+        dataset_output_path = dataset_output_path.replace('YYYY_MM_DD', ingestion_date)
         output_path=f"wasbs://{dataset_container_name}@{storage_account_name}.blob.core.windows.net/{dataset_output_path}"
 
         # Escribe el DataFrame en formato Parquet

@@ -44,7 +44,7 @@ def gold_aggregation(storage_account_name,storage_account_access_key,dataset_con
 
         df_input=(spark.read.format("parquet") 
           .option("header", "true") 
-          .schema(gold_flightDelays_input_schema) #.option("inferSchema", "true") \
+          .option("inferSchema", "true") #.schema(gold_flightDelays_input_schema) #
           .load(input_path)
         )
         

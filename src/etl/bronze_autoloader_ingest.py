@@ -78,9 +78,17 @@ def bronze_ingestion(storage_account_name,storage_account_access_key,dataset_con
         output_path=f"wasbs://{dataset_container_name}@{storage_account_name}.blob.core.windows.net/{dataset_output_path}"
 
         # Escribe el DataFrame en formato Parquet
-        df_output.write.format("parquet") \
+        (df_output.writeStream
+            .format("parquet")              # Formato de salida (e.g., parquet, delta, console)
+            .option("checkpointLocation", checkpoint_path) # RUTA OBLIGATORIA para mantener el estado
+            .outputMode("append")           # Modo de salida (append, complete, update)
+            .start(f"wasbs://{dataset_container_name}@{storage_account_name}.blob.core.windows.net/Flight_Delays/data/test")
+        )
+        """
+          .write.format("parquet") \
           .mode("overwrite") \
-          .save(output_path)
+          .save(output_path) 
+        """
         
         logging.info(f"- Se ha guardado con exito el archivo en  {output_path}")
 

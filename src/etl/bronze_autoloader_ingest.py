@@ -42,10 +42,12 @@ def bronze_ingestion(storage_account_name,storage_account_access_key,dataset_con
         raw_input_path=f"wasbs://{dataset_container_name}@{storage_account_name}.blob.core.windows.net/{dataset_input_path}"
         logging.info(f"- Se va a proceder a leer el archivo de entrada del path {raw_input_path}")
         
+        checkpoint_path  = "dbfs:/mnt/bronze/checkpoints/flights/"
         df_raw=(spark.readStream.format("cloudFiles")
             .option("cloudFiles.format", "parquet")
             .option("header", "true")
             .option("inferSchema", "true")
+            .option("cloudFiles.schemaLocation", checkpoint_path + "schema/")
             .load(raw_input_path)
         )
         logging.info(f"El dataset de entrada tiene: {df_raw.count()} filas")

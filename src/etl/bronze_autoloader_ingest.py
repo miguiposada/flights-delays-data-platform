@@ -48,7 +48,7 @@ def bronze_ingestion(storage_account_name,storage_account_access_key,dataset_con
             .option("header", "true")
             .option("inferSchema", "true")
             .option("cloudFiles.schemaLocation", checkpoint_path + "schema/")
-            .load(raw_input_path)
+            .load(f"wasbs://{dataset_container_name}@{storage_account_name}.blob.core.windows.net/Flight_Delays/data/bronze")
         )
         logging.info(f"El dataset de entrada tiene: {df_raw.count()} filas")
 

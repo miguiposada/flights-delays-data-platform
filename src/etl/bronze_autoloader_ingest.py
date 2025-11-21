@@ -178,12 +178,13 @@ def main():
         storage_account_name = sys.argv[3]
         config_container = sys.argv[4]
         config_blob_path = sys.argv[5]
+        sastoken_config_secret_name = sys.argv[5]
 
 
-        logging.info(f"El key_vault_name es: {key_vault_name} y el secret_name es: '{config_secret_name}'")
+        logging.info(f"El key_vault_name es: {key_vault_name} y el secret_name es: '{sastoken_config_secret_name}'")
         
         # 1. Obtener detalles de la conexión y configurar la SAS
-        config_sas_details = get_sas_details(storage_account_name,config_container, key_vault_name, config_secret_name,config_blob_path)
+        config_sas_details = get_sas_details(storage_account_name,config_container, key_vault_name, sastoken_config_secret_name,config_blob_path)
         logging.info(f"Los sas details son: {config_sas_details}")
         
       

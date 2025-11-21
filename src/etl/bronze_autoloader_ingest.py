@@ -7,8 +7,9 @@ from pyspark.sql.functions import *
 from pyspark.sql.types import *
 from pyspark.sql import SparkSession
 
-from utils.read_json_from_blob import readJsonFromBlob
+from utils.read_json_from_blob import readJsonFromBlobWithSas
 from utils.read_azure_secret import readAzureSecret
+from utils.create_sas_conection import get_sas_details, configure_sas_access
 
 import logging
 # Configuración de logging
@@ -19,27 +20,95 @@ logging.basicConfig(
 
 logging.info("-Se han importado las librerias")
 
-print(sys.argv)
 
 
-
-def bronze_ingestion(storage_account_name,storage_account_access_key,dataset_container_name,dataset_input_path,dataset_output_path):
+def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dataset_input_path,dataset_output_path):
     try:
+
+        #PATHS Y VARIABLES
+
+        CHECKPOINT_LOCATION = "/mnt/datalake/autoloader_checkpoints/ventas_incremental_parquet" # Checkpoint location
+        TARGET_OUTPUT_PATH = "wasbs://processeddata@tuaccountdlgen2.blob.core.windows.net/ventas_limpias_parquet/"
+
 
         spark = SparkSession.builder.appName("ExtraccionDatabronze_ingestionbricks").getOrCreate()
         logging.info("- Se ha creado la sesion de spark")
         # --------------------------------------------
         # CONFIGURACIÓN DE ACCESO A BLOB STORAGE
         # --------------------------------------------
-        # Configurar Spark para acceder a Blob Storage
-        spark.conf.set(
-            f"fs.azure.account.key.{storage_account_name}.blob.core.windows.net",
-            storage_account_access_key
+        """ # 1. Obtener detalles de la conexión y configurar la SAS
+        sas_details = get_sas_details(
+            storage_account=storage_account_name,
+            container_name=dataset_container_name,
+            # sas_token_secret_scope="databricks-scope" # Descomenta si usas secrets
+        )"""
+        
+        # 🚨 Es fundamental ejecutar la configuración de Spark ANTES de leer
+        configure_sas_access(spark, sas_details) 
+
+        input_path = sas_details["source_path"] + "ventas/" 
+        # Asume que tus ficheros de datos están en /data/raw/ventas/ dentro del blob
+
+        print(f"Ruta de origen para Auto Loader: {input_path}")
+
+
+        # 2. Configuración de Auto Loader para leer Parquet
+        autoloader_options = {
+            "cloudFiles.format": "**parquet**", # ⬅️ Formato de lectura ajustado a PARQUET
+            "cloudFiles.schemaLocation": CHECKPOINT_LOCATION,
+            "cloudFiles.maxFilesPerTrigger": "100",
+            "cloudFiles.inferColumnTypes": "true",
+            "cloudFiles.allowCdcSchemaEvolution": "true",
+            "cloudFiles.rescuedDataColumn": "_rescued_data" 
+        }
+
+        # 3. Leer los datos de forma incremental
+        df_input = (
+            spark.readStream
+            .format("cloudFiles")
+            .options(**autoloader_options)
+            .load(input_path)
         )
 
+        # 4. Aplicar transformaciones básicas (Opcional)
+         # Agregar columnas de metadatos: fecha de ingesta, nombre del archivo, etc.
+        #Añadimos columna current timestamp
+        df_output=df_rdf_inputaw.select(
+            current_date().alias("ingestion_date"),  # primera columna
+            *df_input.columns                    # resto de columnas
+        )
+        df_output.show(5)        # Muestra las primeras 5 filas
+        df_output.printSchema()
+
+        logging.info("- Se ha añadido la columna ingestion_date al dataset")
+        logging.info(f"El dataset de salida tiene: {df_output.count()} filas")
         
+        ingestion_date = datetime.now().strftime("%Y_%m_%d")
+        dataset_output_path = dataset_output_path.replace('YYYY_MM_DD', ingestion_date)
+        logging.info(f"- Se va a proceder a guardar el archivo correspondiente en el ruta {dataset_output_path}")
+        
+
+        # 5. Escribir los datos en formato Parquet en la ubicación de destino
+        print(f"Escribiendo en la ruta de destino (Parquet): {TARGET_OUTPUT_PATH}")
+
+        (
+            df_output.writeStream
+            .format("**parquet**") # ⬅️ Formato de escritura ajustado a PARQUET
+            .option("path", TARGET_OUTPUT_PATH) # Especificar la ruta de destino
+            .option("checkpointLocation", CHECKPOINT_LOCATION) 
+            .outputMode("append")                            
+            .trigger(availableNow=True)                      
+            .start() # Usamos .start() para iniciar el streaming
+        ).awaitTermination() # Espera a que el proceso termine (ya que usamos availableNow=True)
+
+        print("Extracción incremental con Auto Loader finalizada y escrita en formato Parquet.")
+
+        ##-----------------------------------------------------------------------------------------------------------
         #Leemos df
-        raw_input_path=f"wasbs://{dataset_container_name}@{storage_account_name}.blob.core.windows.net/{dataset_input_path}"
+        #raw_input_path=f"wasbs://{dataset_container_name}@{storage_account_name}.blob.core.windows.net/{dataset_input_path}"
+        raw_input_path=f"wasbs://{dataset_container_name}@{storage_account_name}.blob.core.windows.net/databricks-projects/Flight_Delays/data/raw/autoloader"
+        output_path=f"wasbs://{dataset_container_name}@{storage_account_name}.blob.core.windows.net/databricks-projects/Flight_Delays/data/bronze/autoloader"
+        
         logging.info(f"- Se va a proceder a leer el archivo de entrada del path {raw_input_path}")
         
         checkpoint_path  = "dbfs:/mnt/bronze/checkpoints/flights/"
@@ -75,7 +144,7 @@ def bronze_ingestion(storage_account_name,storage_account_access_key,dataset_con
         logging.info(f"- Se va a proceder a guardar el archivo correspondiente en el ruta {dataset_output_path}")
         
         #Guardamos como parquet
-        output_path=f"wasbs://{dataset_container_name}@{storage_account_name}.blob.core.windows.net/{dataset_output_path}"
+        #output_path=f"wasbs://{dataset_container_name}@{storage_account_name}.blob.core.windows.net/{dataset_output_path}"
 
         # Escribe el DataFrame en formato Parquet
         (df_output.writeStream
@@ -105,23 +174,28 @@ def main():
         #key_vault_name = "databrickslearningkvmp"
         #secret_name = "databrickslearningsecretmp-accesskey"
         key_vault_name = sys.argv[1]
-        secret_name = sys.argv[2]
-        
-        logging.info(f"El key_vault_name es: {key_vault_name} y el secret_name es: '{secret_name}'")
-
-        storage_account_access_key=readAzureSecret(key_vault_name, secret_name)
-        logging.info(f"El secreto es: '{storage_account_access_key}'")
-
+        config_secret_name = sys.argv[2]
         storage_account_name = sys.argv[3]
         config_container = sys.argv[4]
         config_blob_path = sys.argv[5]
-        
-        configJSON = readJsonFromBlob(storage_account_name, config_container,config_blob_path,storage_account_access_key)
-        logging.info(f"El configJSON es: {configJSON}")
 
-        bronze_ingestion(storage_account_name, storage_account_access_key,
+
+        logging.info(f"El key_vault_name es: {key_vault_name} y el secret_name es: '{config_secret_name}'")
+        
+        # 1. Obtener detalles de la conexión y configurar la SAS
+        config_sas_details = get_sas_details(storage_account_name,config_container, key_vault_name, config_secret_name,config_blob_path)
+        logging.info(f"Los sas details son: {config_sas_details}")
+        
+      
+        
+        configJSON = readJsonFromBlobWithSas(config_sas_details['storage_account'], config_sas_details['container_name'],config_sas_details['source_path_wasb'],config_sas_details['sas_token'])
+        logging.info(f"El configJSON es: {configJSON}")
+        """ 
+        bronze_ingestion(storage_account_name, sas_details,
                         configJSON['dataset_container_name'],configJSON['dataset_input_path'],configJSON['dataset_output_path'])
 
+        """
+        
     except Exception as e:
         logging.error(f"Ocurrió un error: {e}")
 

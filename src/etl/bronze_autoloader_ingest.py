@@ -179,7 +179,7 @@ def main():
         config_container = sys.argv[4]
         config_blob_path = sys.argv[5]
         sastoken_config_secret_name = sys.argv[6]
-        configs_folder_path = sys.argv[6]
+        configs_folder_path = sys.argv[7]
 
 
         logging.info(f"El key_vault_name es: {key_vault_name} y el secret_name es: '{sastoken_config_secret_name}'")

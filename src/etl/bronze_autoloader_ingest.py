@@ -190,7 +190,7 @@ def main():
         
       
         
-        configJSON = readJsonFromBlobWithSas(config_sas_details['storage_account'], config_sas_details['container_name'],config_sas_details['source_path'],config_sas_details['sas_token'])
+        configJSON = readJsonFromBlobWithSas(config_sas_details['storage_account'], config_sas_details['container_name'],config_blob_path,config_sas_details['sas_token'])
         logging.info(f"El configJSON es: {configJSON}")
         """ 
         bronze_ingestion(storage_account_name, sas_details,

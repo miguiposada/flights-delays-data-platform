@@ -1,7 +1,12 @@
 import os
 
 from utils.read_azure_secret import readAzureSecret
-
+import logging
+# Configuración de logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 # --- Parámetros de conexión ---
 # Nota: En un entorno de producción, la SAS NUNCA debe estar en el código.
 # Utiliza Azure Key Vault o Databricks Secrets para almacenar la SAS de forma segura.
@@ -27,7 +32,8 @@ def get_sas_details(storage_account, container_name,key_vault_name, secret_name,
     # Define el path de origen en formato WASB (Azure Blob Storage)
     # Autoloader también soporta el formato ABFS (Azure Data Lake Gen2)
     source_path_wasb = f"wasbs://{container_name}@{storage_account}.blob.core.windows.net/{path}"
-
+    logging.info(f"source_path_wasb: {source_path_wasb}")
+    
     return {
         "source_path": source_path_wasb,
         "sas_token": sas_token,

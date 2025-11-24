@@ -54,7 +54,7 @@ def readJsonFromBlobWithSas(storage_account_name: str, container_name: str, blob
 
     # 1. Construir la URL completa del blob, incluyendo el token SAS como parámetro de consulta
     # Ejemplo de URL: https://[storage].blob.core.windows.net/[container]/[path/to/file]?sv=...&sig=...
-    blob_url = f"https://{storage_account_name}.blob.core.windows.net/{container_name}/{blob_path}{sas_token}"
+    blob_url = f"https://{storage_account_name}.blob.core.windows.net/{container_name}/{blob_path}?{sas_token}"
     
     # 2. Inicializar el cliente del blob
     # Al pasar la URL completa con el token SAS, el cliente usa la SAS para autenticarse automáticamente.

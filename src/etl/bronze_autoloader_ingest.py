@@ -70,6 +70,13 @@ def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dat
             .options(**autoloader_options)
             .load(input_path)
         )
+        query = (
+            df_input # DataFrame de Streaming
+            .writeStream
+            # ... otras configuraciones
+            .start() # 👈 LA CONSULTA COMIENZA AQUÍ
+        )
+        
         #df_input.show(5)        # Muestra las primeras 5 filas
         #df_input.printSchema()  # Muestra el esquema del DataFrame
         #logging.info(f"El dataset de entrada tiene: {df_output.count()} filas")

@@ -91,7 +91,7 @@ def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dat
         
         ingestion_date = datetime.now().strftime("%Y_%m_%d")
 
-        """
+        
         dataset_output_path = dataset_output_path.replace('YYYY_MM_DD', ingestion_date)
         logging.info(f"- Se va a proceder a guardar el archivo correspondiente en el ruta {dataset_output_path}")
         
@@ -110,65 +110,7 @@ def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dat
         ).awaitTermination() # Espera a que el proceso termine (ya que usamos availableNow=True)
 
         print("Extracción incremental con Auto Loader finalizada y escrita en formato Parquet.")
-
-        ##-----------------------------------------------------------------------------------------------------------
-        #Leemos df
-        #raw_input_path=f"wasbs://{dataset_container_name}@{storage_account_name}.blob.core.windows.net/{dataset_input_path}"
-        raw_input_path=f"wasbs://{dataset_container_name}@{storage_account_name}.blob.core.windows.net/databricks-projects/Flight_Delays/data/raw/autoloader"
-        output_path=f"wasbs://{dataset_container_name}@{storage_account_name}.blob.core.windows.net/databricks-projects/Flight_Delays/data/bronze/autoloader"
-        
-        logging.info(f"- Se va a proceder a leer el archivo de entrada del path {raw_input_path}")
-        
-        checkpoint_path  = "dbfs:/mnt/bronze/checkpoints/flights/"
-        df_raw=(spark.readStream.format("cloudFiles")
-            .option("cloudFiles.format", "parquet")
-            .option("header", "true")
-            .option("inferSchema", "true")
-            .option("cloudFiles.schemaLocation", checkpoint_path + "schema/")
-            .load(f"wasbs://{dataset_container_name}@{storage_account_name}.blob.core.windows.net/Flight_Delays/data/bronze")
-        )
-        logging.info(f"El dataset de entrada tiene: {df_raw.count()} filas")
-
-        df_raw.show(5)        # Muestra las primeras 5 filas
-        df_raw.printSchema()  # Muestra el esquema del DataFrame
-
-        logging.info(f"- Se ha leido el dataset {raw_input_path} ")
-
-
-        # Agregar columnas de metadatos: fecha de ingesta, nombre del archivo, etc.
-        #Añadimos columna current timestamp
-        df_output=df_raw.select(
-            current_date().alias("ingestion_date"),  # primera columna
-            *df_raw.columns                    # resto de columnas
-        )
-        df_output.show(5)        # Muestra las primeras 5 filas
-        df_output.printSchema()
-
-        logging.info("- Se ha añadido la columna ingestion_date al dataset")
-        logging.info(f"El dataset de salida tiene: {df_output.count()} filas")
-        
-        ingestion_date = datetime.now().strftime("%Y_%m_%d")
-        dataset_output_path = dataset_output_path.replace('YYYY_MM_DD', ingestion_date)
-        logging.info(f"- Se va a proceder a guardar el archivo correspondiente en el ruta {dataset_output_path}")
-        
-        #Guardamos como parquet
-        #output_path=f"wasbs://{dataset_container_name}@{storage_account_name}.blob.core.windows.net/{dataset_output_path}"
-
-        # Escribe el DataFrame en formato Parquet
-        (df_output.writeStream
-            .format("parquet")              # Formato de salida (e.g., parquet, delta, console)
-            .option("checkpointLocation", checkpoint_path) # RUTA OBLIGATORIA para mantener el estado
-            .outputMode("append")           # Modo de salida (append, complete, update)
-            .start(f"wasbs://{dataset_container_name}@{storage_account_name}.blob.core.windows.net/Flight_Delays/data/test")
-        )
         """
-          .write.format("parquet") \
-          .mode("overwrite") \
-          .save(output_path) 
-        """
-        
-        logging.info(f"- Se ha guardado con exito el archivo en  {output_path}")
-
 
     except Exception as e:
         logging.error(f"Ocurrió un error al extraer los datos: {e}")

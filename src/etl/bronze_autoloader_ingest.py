@@ -133,6 +133,7 @@ def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dat
 
     except Exception as e:
         logging.error(f"Ocurrió un error al extraer los datos: {e}")
+        raise e
     finally:
         logging.info("Proceso de extracción finalizado")
 

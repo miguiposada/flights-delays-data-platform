@@ -70,18 +70,19 @@ def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dat
             .options(**autoloader_options)
             .load(input_path)
         )
-        query = (
-            df_input # DataFrame de Streaming
-            .writeStream
-            # ... otras configuraciones
-            .start() # 👈 LA CONSULTA COMIENZA AQUÍ
-        )
-        query.awaitTermination()
+        df_output=(df_input.writeStream
+            .format("**parquet**") # ⬅️ Formato de escritura ajustado a PARQUET
+            .option("path", TARGET_OUTPUT_PATH) # Especificar la ruta de destino
+            .option("checkpointLocation", CHECKPOINT_LOCATION) 
+            .outputMode("append")                            
+            .trigger(availableNow=True)                      
+            .start() # Usamos .start() para iniciar el streaming
+        ).awaitTermination()
         #df_input.show(5)        # Muestra las primeras 5 filas
         #df_input.printSchema()  # Muestra el esquema del DataFrame
         #logging.info(f"El dataset de entrada tiene: {df_output.count()} filas")
         logging.info(f"El dataset se ha leido correctamente")
-
+        df_output.printSchema()
         """ 
         # 4. Aplicar transformaciones básicas (Opcional)
          # Agregar columnas de metadatos: fecha de ingesta, nombre del archivo, etc.

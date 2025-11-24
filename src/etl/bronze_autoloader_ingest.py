@@ -62,12 +62,13 @@ def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dat
             "cloudFiles.allowCdcSchemaEvolution": "true",
             "cloudFiles.rescuedDataColumn": "_rescued_data" 
         }
-
+        """ 
         df_raw=spark.read.format("parquet") \
           .option("header", "true") \
           .option("inferSchema", "true") \
           .load(input_path)
         
+        """
         logging.info(f"El dataset de entrada tiene: {df_raw.count()} filas")
         # 3. Leer los datos de forma incremental
         df_input = (
@@ -76,10 +77,9 @@ def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dat
             .options(**autoloader_options)
             .load(input_path)
         )
-        logging.info(f"df_input----------------")
-        # 🚨 Es fundamental ejecutar la configuración de Spark ANTES de leer
-        configure_sas_access(spark, sas_details) 
-
+        logging.info(f"DataFrame de entrada df_input creado.")
+        # Muestra el esquema de inferencia (se ejecuta de inmediato)
+        df_input.printSchema()
 
         df_output=(df_input.writeStream
             .format("parquet") # ⬅️ Formato de escritura ajustado a PARQUET
@@ -88,12 +88,14 @@ def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dat
             .outputMode("append")                            
             .trigger(availableNow=True)                      
             .start() # Usamos .start() para iniciar el streaming
-        ).awaitTermination()
-        #df_input.show(5)        # Muestra las primeras 5 filas
-        #df_input.printSchema()  # Muestra el esquema del DataFrame
-        #logging.info(f"El dataset de entrada tiene: {df_output.count()} filas")
-        logging.info(f"El dataset se ha leido correctamente")
-        df_output.printSchema()
+        )
+        logging.info(f"El proceso de streaming ha sido iniciado.")
+        
+        
+        df_output.awaitTermination()
+        logging.info(f"El dataset se ha leido correctamente y el stream ha finalizado (availableNow=True).")
+
+
         """ 
         # 4. Aplicar transformaciones básicas (Opcional)
          # Agregar columnas de metadatos: fecha de ingesta, nombre del archivo, etc.

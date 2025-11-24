@@ -84,7 +84,7 @@ def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dat
             .format("parquet") # ⬅️ Formato de escritura ajustado a PARQUET
             .option("path", TARGET_OUTPUT_PATH) # Especificar la ruta de destino
             .option("checkpointLocation", CHECKPOINT_LOCATION) 
-            .outputMode("append")                            
+            .outputMode("complete")#            .outputMode("append")                            
             .trigger(availableNow=True)                      
             .start() # Usamos .start() para iniciar el streaming
         )

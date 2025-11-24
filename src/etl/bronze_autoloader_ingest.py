@@ -70,11 +70,12 @@ def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dat
             .options(**autoloader_options)
             .load(input_path)
         )
-        df_input.show(5)        # Muestra las primeras 5 filas
-        df_input.printSchema()  # Muestra el esquema del DataFrame
-        logging.info(f"El dataset de entrada tiene: {df_output.count()} filas")
+        #df_input.show(5)        # Muestra las primeras 5 filas
+        #df_input.printSchema()  # Muestra el esquema del DataFrame
+        #logging.info(f"El dataset de entrada tiene: {df_output.count()} filas")
+        logging.info(f"El dataset se ha leido correctamente")
 
-        
+        """ 
         # 4. Aplicar transformaciones básicas (Opcional)
          # Agregar columnas de metadatos: fecha de ingesta, nombre del archivo, etc.
         #Añadimos columna current timestamp
@@ -89,6 +90,8 @@ def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dat
         logging.info(f"El dataset de salida tiene: {df_output.count()} filas")
         
         ingestion_date = datetime.now().strftime("%Y_%m_%d")
+
+        """
         dataset_output_path = dataset_output_path.replace('YYYY_MM_DD', ingestion_date)
         logging.info(f"- Se va a proceder a guardar el archivo correspondiente en el ruta {dataset_output_path}")
         

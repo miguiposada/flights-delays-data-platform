@@ -195,12 +195,12 @@ def main():
         
         logging.info(f"El configJSON {config_blob_path} es: {configJSON}")
         datasetConfiguration=configJSON['datasetConfiguration']
-        dataset_sas_details = get_sas_details(datasetConfiguration['datasetStorageAccount'],datasetConfiguration['datasetContainerName'],
+        dataset_sas_details = get_sas_details(datasetConfiguration['datasetStorageAccount'],datasetConfiguration['datasetContainer'],
                                                datasetConfiguration['datasetKeyVaultName'], datasetConfiguration['SasTokenSecretName'], datasetConfiguration['SasPath'])
         logging.info(f"Los dataset_sas_details details son: {dataset_sas_details}")
 
         bronze_ingestion(storage_account_name, dataset_sas_details,
-                        datasetConfiguration['datasetContainerName'],datasetConfiguration['datasetInputPath'],datasetConfiguration['datasetOuputPath'])
+                        datasetConfiguration['datasetContainer'],datasetConfiguration['datasetInputPath'],datasetConfiguration['datasetOuputPath'])
 
         
         

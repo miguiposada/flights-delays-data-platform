@@ -189,8 +189,9 @@ def main():
         logging.info(f"Los sas details son: {config_sas_details}")
         
       
+        #configJSON = readJsonFromBlobWithSas(config_sas_details['storage_account'], config_sas_details['container_name'],config_blob_path,config_sas_details['sas_token'])
+        configJSON = readJsonFromBlobWithSas('databrickslearningsamp', 'databricks-projects','Flight_Delays/config/bronze_autoloader_ingestion_config.json',f"sp=r&st=2025-11-21T12:21:48Z&se=2025-11-21T20:36:48Z&spr=https&sv=2024-11-04&sr=b&sig=yRaBx3F%2FnnEN5odH%2BhcbXn%2BB7jCIiv4%2FWjFs3YLogbg%3D")
         
-        configJSON = readJsonFromBlobWithSas(config_sas_details['storage_account'], config_sas_details['container_name'],config_blob_path,config_sas_details['sas_token'])
         logging.info(f"El configJSON es: {configJSON}")
         """ 
         bronze_ingestion(storage_account_name, sas_details,

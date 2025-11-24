@@ -47,7 +47,7 @@ def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dat
         configure_sas_access(spark, sas_details) 
         logging.info(f"Se ha configurado la conexion SAS")
 
-        input_path = sas_details["source_path"] + "raw/" 
+        input_path = sas_details["source_path"] + "raw/tests/" 
         # Asume que tus ficheros de datos están en /data/raw/ventas/ dentro del blob
 
         logging.info(f"Ruta de origen para Auto Loader: {input_path}")

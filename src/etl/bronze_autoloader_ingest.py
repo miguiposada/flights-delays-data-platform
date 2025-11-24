@@ -190,7 +190,8 @@ def main():
         
       
         #configJSON = readJsonFromBlobWithSas(config_sas_details['storage_account'], config_sas_details['container_name'],config_blob_path,config_sas_details['sas_token'])
-        configJSON = readJsonFromBlobWithSas('databrickslearningsamp', 'databricks-projects','Flight_Delays/config/bronze_autoloader_ingestion_config.json',f"sp=r&st=2025-11-21T12:21:48Z&se=2025-11-21T20:36:48Z&spr=https&sv=2024-11-04&sr=b&sig=yRaBx3F%2FnnEN5odH%2BhcbXn%2BB7jCIiv4%2FWjFs3YLogbg%3D")
+        configJSON = readJsonFromBlobWithSas('databrickslearningsamp', 'databricks-projects','Flight_Delays/config/bronze_autoloader_ingestion_config.json',
+                                             f"sp=r&st=2025-11-24T09:07:53Z&se=2025-12-01T17:22:53Z&spr=https&sv=2024-11-04&sr=b&sig=vdxRPOaFBXaQskP6Zp7fr%2BdGuK99hQYnlPZI7%2BdtsTM%3D")
         
         logging.info(f"El configJSON es: {configJSON}")
         """ 

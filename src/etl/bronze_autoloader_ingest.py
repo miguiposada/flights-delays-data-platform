@@ -181,21 +181,26 @@ def main():
         sastoken_config_secret_name = sys.argv[6]
         configs_folder_path = sys.argv[7]
         sastoken_bronzeconfig_secret_name = sys.argv[8]
+        sastoken_datasets_secret_name = sys.argv[9]
 
 
         logging.info(f"El key_vault_name es: {key_vault_name} y el secret_name es: '{sastoken_config_secret_name}'")
         
         # 1. Obtener detalles de la conexión y configurar la SAS
         config_sas_details = get_sas_details(storage_account_name,config_container, key_vault_name, sastoken_config_secret_name,configs_folder_path)
-        logging.info(f"Los sas details son: {config_sas_details}")
+        logging.info(f"Los config_sas_details details son: {config_sas_details}")
         
       
         configJSON = readJsonFromBlobWithSas(config_sas_details['storage_account'], config_sas_details['container_name'],config_blob_path,config_sas_details['sas_token'])
         
-        logging.info(f"El configJSON es: {configJSON}")
-         
-        bronze_ingestion(storage_account_name, config_sas_details,
-                        configJSON['dataset_container_name'],configJSON['dataset_input_path'],configJSON['dataset_output_path'])
+        logging.info(f"El configJSON {config_blob_path} es: {configJSON}")
+        datasetConfiguration=configJSON['datasetConfiguration']
+        dataset_sas_details = get_sas_details(datasetConfiguration['datasetStorageAccount'],datasetConfiguration['datasetContainerName'],
+                                               datasetConfiguration['datasetKeyVaultName'], datasetConfiguration['SasTokenSecretName'], datasetConfiguration['SasPath'])
+        logging.info(f"Los dataset_sas_details details son: {dataset_sas_details}")
+
+        bronze_ingestion(storage_account_name, dataset_sas_details,
+                        datasetConfiguration['datasetContainerName'],datasetConfiguration['datasetInputPath'],datasetConfiguration['datasetOuputPath'])
 
         
         

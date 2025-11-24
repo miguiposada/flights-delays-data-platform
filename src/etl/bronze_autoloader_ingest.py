@@ -63,6 +63,12 @@ def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dat
             "cloudFiles.rescuedDataColumn": "_rescued_data" 
         }
 
+        df_raw=spark.read.format("parquet") \
+          .option("header", "true") \
+          .option("inferSchema", "true") \
+          .load(input_path)
+        
+        logging.info(f"El dataset de entrada tiene: {df_raw.count()} filas")
         # 3. Leer los datos de forma incremental
         df_input = (
             spark.readStream

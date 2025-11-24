@@ -28,7 +28,7 @@ def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dat
         #PATHS Y VARIABLES
 
         CHECKPOINT_LOCATION = "/mnt/datalake/autoloader_checkpoints/ventas_incremental_parquet" # Checkpoint location
-        TARGET_OUTPUT_PATH = "wasbs://databrickslearningsamp.blob.core.windows.net/databricks-projects/Flight_Delays/data/bronze_autoloader/"
+        TARGET_OUTPUT_PATH = "wasbs://databricks-projects@databrickslearningsamp.blob.core.windows.net/Flight_Delays/data/bronze_autoloader/"
 
         spark = SparkSession.builder.appName("ExtraccionDatabronze_ingestionbricks").getOrCreate()
         logging.info("- Se ha creado la sesion de spark")
@@ -69,6 +69,11 @@ def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dat
             .options(**autoloader_options)
             .load(input_path)
         )
+        logging.info(f"df_input----------------")
+        # 🚨 Es fundamental ejecutar la configuración de Spark ANTES de leer
+        configure_sas_access(spark, sas_details) 
+
+
         df_output=(df_input.writeStream
             .format("parquet") # ⬅️ Formato de escritura ajustado a PARQUET
             .option("path", TARGET_OUTPUT_PATH) # Especificar la ruta de destino

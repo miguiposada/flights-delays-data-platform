@@ -45,11 +45,12 @@ def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dat
         
         # 🚨 Es fundamental ejecutar la configuración de Spark ANTES de leer
         configure_sas_access(spark, sas_details) 
+        logging.info(f"Se ha configurado la conexion SAS")
 
-        input_path = sas_details["source_path"] + "ventas/" 
+        input_path = sas_details["source_path"] + "raw/" 
         # Asume que tus ficheros de datos están en /data/raw/ventas/ dentro del blob
 
-        print(f"Ruta de origen para Auto Loader: {input_path}")
+        logging.info(f"Ruta de origen para Auto Loader: {input_path}")
 
 
         # 2. Configuración de Auto Loader para leer Parquet
@@ -69,7 +70,11 @@ def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dat
             .options(**autoloader_options)
             .load(input_path)
         )
+        df_input.show(5)        # Muestra las primeras 5 filas
+        df_input.printSchema()  # Muestra el esquema del DataFrame
+        logging.info(f"El dataset de entrada tiene: {df_output.count()} filas")
 
+        
         # 4. Aplicar transformaciones básicas (Opcional)
          # Agregar columnas de metadatos: fecha de ingesta, nombre del archivo, etc.
         #Añadimos columna current timestamp

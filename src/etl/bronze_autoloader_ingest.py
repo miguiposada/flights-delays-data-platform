@@ -59,7 +59,7 @@ def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dat
             "cloudFiles.schemaLocation": CHECKPOINT_LOCATION+"/schema/",
             "cloudFiles.maxFilesPerTrigger": "100",
             "cloudFiles.inferColumnTypes": "true",
-            "cloudFiles.allowCdcSchemaEvolution": "true",
+            #"cloudFiles.allowCdcSchemaEvolution": "true",
             "cloudFiles.rescuedDataColumn": "_rescued_data" 
         }
         """ 

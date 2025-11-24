@@ -51,5 +51,5 @@ def configure_sas_access(spark, sas_details):
     
     spark.conf.set(sas_config_key, sas_details['sas_token'])
     
-    print(f"Configuración SAS para {sas_details['storage_account']}/{sas_details['container_name']} aplicada.")
-    print("Auto Loader puede comenzar la lectura.")
+    logging.info(f"Configuración SAS para {sas_details['storage_account']}/{sas_details['container_name']} aplicada.")
+    logging.info("Auto Loader puede comenzar la lectura.")

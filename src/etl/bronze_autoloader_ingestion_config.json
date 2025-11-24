@@ -1,0 +1,19 @@
+{
+    "variablesEntrada":{
+        "key_vault_name":"databrickslearningkvmp",
+        "storage_account_name":"databrickslearningsamp",
+        "config_container":"databricks-projects",
+        "config_blob_path":"Flight_Delays/config/bronze_ingestion_config.json"
+    },
+    "variablesEntorno":{},
+    "datasetConfiguration":{
+        "datasetStorageAccount":"databrickslearningsamp",
+        "datasetContainer":"databricks-projects",
+        "datasetKeyVaultName":"databrickslearningkvmp ",
+        "SasTokenSecretName":"databrickslearningsecretmp-SasToken-datasets",
+        "SasPath":"Flight_Delays/data/",
+        "datasetInputPath":"Flight_Delays/data/raw/Flight_Delay.parquet",
+        "datasetOuputPath":"Flight_Delays/data/bronze/Flight_Delay_bronze_YYYY_MM_DD.parquet"
+
+    }
+}

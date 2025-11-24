@@ -28,8 +28,7 @@ def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dat
         #PATHS Y VARIABLES
 
         CHECKPOINT_LOCATION = "/mnt/datalake/autoloader_checkpoints/ventas_incremental_parquet" # Checkpoint location
-        TARGET_OUTPUT_PATH = "wasbs://processeddata@tuaccountdlgen2.blob.core.windows.net/ventas_limpias_parquet/"
-
+        TARGET_OUTPUT_PATH = "wasbs://databrickslearningsamp.blob.core.windows.net/databricks-projects/Flight_Delays/data/bronze_autoloader/"
 
         spark = SparkSession.builder.appName("ExtraccionDatabronze_ingestionbricks").getOrCreate()
         logging.info("- Se ha creado la sesion de spark")

@@ -49,7 +49,7 @@ def configure_sas_access(spark, sas_details):
     # Propiedad de Spark para autenticar con SAS a nivel de contenedor/cuenta
     sas_config_key = f"fs.azure.sas.{sas_details['container_name']}.{sas_details['storage_account']}.blob.core.windows.net"
     
-    spark.conf.set(sas_config_key, sas_details['sas_token'])
+    spark.conf.set(sas_config_key,f"sp=racwdlmeop&st=2025-11-24T14:04:12Z&se=2025-12-08T22:19:12Z&spr=https&sv=2024-11-04&sr=c&sig=IQ8WOcm8Zmah%2F3Wmbd3Bp8p8mvmz%2B9FytAIWvFheUrI%3D")
     
     logging.info(f"Configuración SAS para {sas_details['storage_account']}/{sas_details['container_name']} aplicada.")
     logging.info("Auto Loader puede comenzar la lectura.")

@@ -73,7 +73,7 @@ def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dat
         # 4. Aplicar transformaciones básicas (Opcional)
          # Agregar columnas de metadatos: fecha de ingesta, nombre del archivo, etc.
         #Añadimos columna current timestamp
-        df_output=df_rdf_inputaw.select(
+        df_output=df_input.select(
             current_date().alias("ingestion_date"),  # primera columna
             *df_input.columns                    # resto de columnas
         )
@@ -180,6 +180,7 @@ def main():
         config_blob_path = sys.argv[5]
         sastoken_config_secret_name = sys.argv[6]
         configs_folder_path = sys.argv[7]
+        sastoken_bronzeconfig_secret_name = sys.argv[8]
 
 
         logging.info(f"El key_vault_name es: {key_vault_name} y el secret_name es: '{sastoken_config_secret_name}'")
@@ -189,16 +190,14 @@ def main():
         logging.info(f"Los sas details son: {config_sas_details}")
         
       
-        #configJSON = readJsonFromBlobWithSas(config_sas_details['storage_account'], config_sas_details['container_name'],config_blob_path,config_sas_details['sas_token'])
-        configJSON = readJsonFromBlobWithSas('databrickslearningsamp', 'databricks-projects','Flight_Delays/config/bronze_autoloader_ingestion_config.json',
-                                             f"sp=r&st=2025-11-24T09:07:53Z&se=2025-12-01T17:22:53Z&spr=https&sv=2024-11-04&sr=b&sig=vdxRPOaFBXaQskP6Zp7fr%2BdGuK99hQYnlPZI7%2BdtsTM%3D")
+        configJSON = readJsonFromBlobWithSas(config_sas_details['storage_account'], config_sas_details['container_name'],config_blob_path,config_sas_details['sas_token'])
         
         logging.info(f"El configJSON es: {configJSON}")
-        """ 
-        bronze_ingestion(storage_account_name, sas_details,
+         
+        bronze_ingestion(storage_account_name, config_sas_details,
                         configJSON['dataset_container_name'],configJSON['dataset_input_path'],configJSON['dataset_output_path'])
 
-        """
+        
         
     except Exception as e:
         logging.error(f"Ocurrió un error: {e}")

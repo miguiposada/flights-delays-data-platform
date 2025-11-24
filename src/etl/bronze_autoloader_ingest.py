@@ -56,7 +56,7 @@ def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dat
         # 2. Configuración de Auto Loader para leer Parquet
         autoloader_options = {
             "cloudFiles.format": "parquet",#"**parquet**", # ⬅️ Formato de lectura ajustado a PARQUET
-            "cloudFiles.schemaLocation": CHECKPOINT_LOCATION,
+            "cloudFiles.schemaLocation": CHECKPOINT_LOCATION+"/schema/",
             "cloudFiles.maxFilesPerTrigger": "100",
             "cloudFiles.inferColumnTypes": "true",
             "cloudFiles.allowCdcSchemaEvolution": "true",

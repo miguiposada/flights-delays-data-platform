@@ -159,7 +159,7 @@ def main():
         # 1. Obtener detalles de la conexión Sas para recuperar el fichero de configuracion
         logging.info(f"1. Se va a proceder a recuperar la configuracion sas correspondiente al fichero de configuracion")
         logging.info(f"El key_vault_name es: {key_vault_name} y el secret_name es: '{sastoken_config_secret_name}'")
-        config_sas_details = get_sas_details(storage_account_name,config_container, key_vault_name, sastoken_config_secret_name,configs_folder_path)
+        config_sas_details = get_sas_details(storage_account_name,config_container, key_vault_name, sastoken_config_secret_name)#,configs_folder_path)
         logging.info(f"Los config_sas_details details son: {config_sas_details}")
         
         # 2. Recuperar el fichero de configuracion
@@ -171,7 +171,7 @@ def main():
         logging.info(f"3. A partir de los datos del fichero de configuracion se va a proceder a recuperar la configuracion sas para acceder a los datasets")
         datasetConfiguration=configJSON['datasetConfiguration']
         dataset_sas_details = get_sas_details(datasetConfiguration['datasetStorageAccount'],datasetConfiguration['datasetContainer'],
-                                               datasetConfiguration['datasetKeyVaultName'], datasetConfiguration['SasTokenSecretName'], datasetConfiguration['SasPath'])
+                                               datasetConfiguration['datasetKeyVaultName'], datasetConfiguration['SasTokenSecretName'])#, datasetConfiguration['SasPath'])
         logging.info(f"Los dataset_sas_details details son: {dataset_sas_details}")
 
         # 4. Se  va a proceder con la ingestion de los datos

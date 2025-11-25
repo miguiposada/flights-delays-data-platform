@@ -50,15 +50,27 @@ def silver_autoloader_transform(dataset_sas_details, datasetInputPath, datasetOu
         logging.info(f"El esquema del dataset de entrada ({datasetInputPath}) es el siguiente: ")
         df_input.printSchema()
 
-       
-        """         
-        #Aplicamos el schema
-        for field in schema_df_input.fields:
-            if field.name in df_input.columns:
-                df_output = df_input.withColumn(field.name, col(field.name).cast(field.dataType))
+        #Eliminamos duplicados basandonos en las columnas clave
+        df = df_input.dropDuplicates(["FlightDate", "Marketing_Airline_Network", "OriginCityName", "DestCityName", "CRSDepTime"])
+        
+        logging.info(f"Se va a proceder a lanzar el proceso de streaming")
+        df_output=(df.writeStream
+            .format("parquet") # ⬅️ Formato de escritura ajustado a PARQUET
+            .option("path", datasetOuputPath) # Especificar la ruta de destino
+            .option("checkpointLocation", checkpointPath) 
+            .partitionBy("ingestion_date")
+            .outputMode("append")                            
+            .trigger(availableNow=True)                      
+            .start() # Usamos .start() para iniciar el streaming
+        )
+        logging.info(f"El proceso de streaming ha sido iniciado.")
+        
+        df_output.awaitTermination()
+        logging.info(f"El dataset se ha leido correctamente y el stream ha finalizado (availableNow=True).")
 
-        df_output.printSchema()
-        """
+        
+        """  
+
         #Vamos a agregar las columnas y eliminar datos incompletos
         #Eliminamos duplicados basandonos en las columnas clave
         df_output = df_output.dropDuplicates(["FlightDate", "Marketing_Airline_Network", "OriginCityName", "DestCityName", "CRSDepTime"])
@@ -109,7 +121,9 @@ def silver_autoloader_transform(dataset_sas_details, datasetInputPath, datasetOu
           .mode("overwrite") \
           .save(output_path)
         logging.info(f"- Se ha guardado con exito el archivo en  {output_path}")
-
+        
+        
+        """
     except Exception as e:
         logging.error(f"Ocurrió un error al extraer los datos: {e}")
     finally:

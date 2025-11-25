@@ -60,7 +60,7 @@ def bronze_autoloader_ingestion(dataset_sas_details, datasetInputPath, datasetOu
         #Añadimos columna current timestamp
         df=df_input.select(
             current_date().alias("ingestion_date"), 
-            current_timestamp().alias("ingestion_timestamp"),
+            current_date().alias("fecha"),
             *df_input.columns
         )
 
@@ -70,7 +70,7 @@ def bronze_autoloader_ingestion(dataset_sas_details, datasetInputPath, datasetOu
             .format("parquet") # ⬅️ Formato de escritura ajustado a PARQUET
             .option("path", datasetOuputPath) # Especificar la ruta de destino
             .option("checkpointLocation", checkpointPath) 
-            .partitionBy("ingestion_timestamp")
+            .partitionBy("fecha")
             .outputMode("append")                            
             .trigger(availableNow=True)                      
             .start() # Usamos .start() para iniciar el streaming

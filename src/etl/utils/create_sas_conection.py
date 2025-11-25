@@ -11,7 +11,7 @@ logging.basicConfig(
 # Nota: En un entorno de producción, la SAS NUNCA debe estar en el código.
 # Utiliza Azure Key Vault o Databricks Secrets para almacenar la SAS de forma segura.
 
-def get_sas_details(storage_account, container_name,key_vault_name, secret_name, path):
+def get_sas_details(storage_account, container_name,key_vault_name, secret_name):#, path):
     """
     Retorna los parámetros de la cuenta de almacenamiento y la clave SAS.
 
@@ -31,11 +31,11 @@ def get_sas_details(storage_account, container_name,key_vault_name, secret_name,
 
     # Define el path de origen en formato WASB (Azure Blob Storage)
     # Autoloader también soporta el formato ABFS (Azure Data Lake Gen2)
-    source_path_wasb = f"wasbs://{container_name}@{storage_account}.blob.core.windows.net/{path}"
-    logging.info(f"source_path_wasb: {source_path_wasb}")
+    #source_path_wasb = f"wasbs://{container_name}@{storage_account}.blob.core.windows.net/{path}"
+    #logging.info(f"source_path_wasb: {source_path_wasb}")
     
     return {
-        "source_path": source_path_wasb,
+        #"source_path": source_path_wasb,
         "sas_token": sas_token,
         "storage_account": storage_account,
         "container_name": container_name
@@ -51,6 +51,6 @@ def configure_sas_access(spark, sas_details):
     
     spark.conf.set(sas_config_key,f"sp=racwdlmeop&st=2025-11-24T14:04:12Z&se=2025-12-08T22:19:12Z&spr=https&sv=2024-11-04&sr=c&sig=IQ8WOcm8Zmah%2F3Wmbd3Bp8p8mvmz%2B9FytAIWvFheUrI%3D")
     spark.conf.set("spark.sql.files.ignoreMissingFiles", "true")
-    
+
     logging.info(f"Configuración SAS para {sas_details['storage_account']}/{sas_details['container_name']} aplicada.")
     logging.info("Auto Loader puede comenzar la lectura.")

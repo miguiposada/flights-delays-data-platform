@@ -24,28 +24,24 @@ logging.info("-Se han importado las librerias")
 
 def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dataset_input_path,dataset_output_path):
     try:
+        logging.info("- bronze_ingestion --> Comienza el metodo bronze_ingestion")
+        
+        spark = SparkSession.builder.appName("ExtraccionDatabronze_ingestionbricks").getOrCreate()
+        logging.info("- Se ha creado la sesion de spark")
 
+        configure_sas_access(spark, sas_details) 
+        logging.info(f"Se ha configurado la conexion SAS")
+        
+        
+        
+        
+        
+        
         #PATHS Y VARIABLES
 
         #CHECKPOINT_LOCATION = "/mnt/datalake/autoloader_checkpoints/ventas_incremental_parquet" # Checkpoint location
         CHECKPOINT_LOCATION = "wasbs://databricks-projects@databrickslearningsamp.blob.core.windows.net/Flight_Delays/data/checkpoint/" # Checkpoint location
         TARGET_OUTPUT_PATH = "wasbs://databricks-projects@databrickslearningsamp.blob.core.windows.net/Flight_Delays/data/bronze_autoloader/"
-
-        spark = SparkSession.builder.appName("ExtraccionDatabronze_ingestionbricks").getOrCreate()
-        logging.info("- Se ha creado la sesion de spark")
-        # --------------------------------------------
-        # CONFIGURACIÓN DE ACCESO A BLOB STORAGE
-        # --------------------------------------------
-        """ # 1. Obtener detalles de la conexión y configurar la SAS
-        sas_details = get_sas_details(
-            storage_account=storage_account_name,
-            container_name=dataset_container_name,
-            # sas_token_secret_scope="databricks-scope" # Descomenta si usas secrets
-        )"""
-        
-        # 🚨 Es fundamental ejecutar la configuración de Spark ANTES de leer
-        configure_sas_access(spark, sas_details) 
-        logging.info(f"Se ha configurado la conexion SAS")
 
         input_path = sas_details["source_path"] #+ "raw/tests/" 
         # Asume que tus ficheros de datos están en /data/raw/ventas/ dentro del blob
@@ -69,7 +65,8 @@ def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dat
           .load(input_path)
         
         """
-        # 3. Leer los datos de forma incremental
+        # 3. Leer los datos
+        logging.info(f"Se va a proceder a leer/creado el dataset de entrada")
         df_input = (
             spark.readStream
             .format("cloudFiles")
@@ -77,10 +74,18 @@ def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dat
             .load(input_path)
         )
         logging.info(f"DataFrame de entrada df_input creado.")
-        # Muestra el esquema de inferencia (se ejecuta de inmediato)
-        df_input.printSchema()
+        logging.info(f"El esquema del dataset de entrada ({input_path}) es: {df_input.printSchema()} ")
+                
+        logging.info(f"Se va a proceder a crear el dataset de salida y realizar las operaciones en caso de que sea necesario")
+        #Añadimos columna current timestamp
+        df_output=df_input.select(
+            current_date().alias("ingestion_date"), 
+            *df_input.columns
+        )
 
-        df_output=(df_input.writeStream
+
+        logging.info(f"Se va a proceder a lanzar el proceso de streaming")
+        (df_output.writeStream
             .format("parquet") # ⬅️ Formato de escritura ajustado a PARQUET
             .option("path", TARGET_OUTPUT_PATH) # Especificar la ruta de destino
             .option("checkpointLocation", CHECKPOINT_LOCATION) 
@@ -89,7 +94,6 @@ def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dat
             .start() # Usamos .start() para iniciar el streaming
         )
         logging.info(f"El proceso de streaming ha sido iniciado.")
-        
         
         df_output.awaitTermination()
         logging.info(f"El dataset se ha leido correctamente y el stream ha finalizado (availableNow=True).")
@@ -142,34 +146,40 @@ def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dat
 def main():
     try:
         logging.info("- El cluster ha arrancado y el proceso va a iniciar")
-        #key_vault_name = "databrickslearningkvmp"
-        #secret_name = "databrickslearningsecretmp-accesskey"
+        
         key_vault_name = sys.argv[1]
-        config_secret_name = sys.argv[2]
+        sastoken_config_secret_name = sys.argv[2]
+
         storage_account_name = sys.argv[3]
         config_container = sys.argv[4]
+
         config_blob_path = sys.argv[5]
-        sastoken_config_secret_name = sys.argv[6]
-        configs_folder_path = sys.argv[7]
-        sastoken_bronzeconfig_secret_name = sys.argv[8]
-        sastoken_datasets_secret_name = sys.argv[9]
-
-
-        logging.info(f"El key_vault_name es: {key_vault_name} y el secret_name es: '{sastoken_config_secret_name}'")
+        configs_folder_path = sys.argv[6]
         
-        # 1. Obtener detalles de la conexión y configurar la SAS
+        # 0. Se han obtenido las siguientes variables a partir de los parametros de entrada:
+        logging.info(f"0. Se han obtenido las siguientes variables a partir de los parametros de entrada: 'key_vault_name': '{key_vault_name}', 'sastoken_config_secret_name': '{sastoken_config_secret_name}', 'storage_account_name': '{storage_account_name}', 'config_container': '{config_container}','config_blob_path': '{config_blob_path}', 'configs_folder_path': '{configs_folder_path}'")
+
+        
+        # 1. Obtener detalles de la conexión Sas para recuperar el fichero de configuracion
+        logging.info(f"1. Se va a proceder a recuperar la configuracion sas correspondiente al fichero de configuracion")
+        logging.info(f"El key_vault_name es: {key_vault_name} y el secret_name es: '{sastoken_config_secret_name}'")
         config_sas_details = get_sas_details(storage_account_name,config_container, key_vault_name, sastoken_config_secret_name,configs_folder_path)
         logging.info(f"Los config_sas_details details son: {config_sas_details}")
         
-      
+        # 2. Recuperar el fichero de configuracion
+        logging.info(f"2. Se va a proceder a recuperar el fichero de configuracion")
         configJSON = readJsonFromBlobWithSas(config_sas_details['storage_account'], config_sas_details['container_name'],config_blob_path,config_sas_details['sas_token'])
-        
-        logging.info(f"El configJSON {config_blob_path} es: {configJSON}")
+        logging.info(f"El fihcero de configuracion {config_blob_path} es: {configJSON}")
+
+        # 3. Obtener detalles de la conexión Sas para acceder a los datasets
+        logging.info(f"3. A partir de los datos del fichero de configuracion se va a proceder a recuperar la configuracion sas para acceder a los datasets")
         datasetConfiguration=configJSON['datasetConfiguration']
         dataset_sas_details = get_sas_details(datasetConfiguration['datasetStorageAccount'],datasetConfiguration['datasetContainer'],
                                                datasetConfiguration['datasetKeyVaultName'], datasetConfiguration['SasTokenSecretName'], datasetConfiguration['SasPath'])
         logging.info(f"Los dataset_sas_details details son: {dataset_sas_details}")
 
+        # 4. Se  va a proceder con la ingestion de los datos
+        logging.info(f"4. Se  va a proceder con la ingestion de los datos")
         bronze_ingestion(storage_account_name, dataset_sas_details,
                         datasetConfiguration['datasetContainer'],datasetConfiguration['datasetInputPath'],datasetConfiguration['datasetOuputPath'])
 

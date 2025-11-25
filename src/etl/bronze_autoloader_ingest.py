@@ -22,14 +22,14 @@ logging.info("-Se han importado las librerias")
 
 
 
-def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dataset_input_path,dataset_output_path):
+def bronze_ingestion(dataset_sas_details, datasetInputPath, datasetOuputPath, checkpointPath, autoloaderOptions):
     try:
         logging.info("- bronze_ingestion --> Comienza el metodo bronze_ingestion")
         
         spark = SparkSession.builder.appName("ExtraccionDatabronze_ingestionbricks").getOrCreate()
         logging.info("- Se ha creado la sesion de spark")
 
-        configure_sas_access(spark, sas_details) 
+        configure_sas_access(spark, dataset_sas_details) 
         logging.info(f"Se ha configurado la conexion SAS")
         
         
@@ -40,15 +40,15 @@ def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dat
         #PATHS Y VARIABLES
 
         #CHECKPOINT_LOCATION = "/mnt/datalake/autoloader_checkpoints/ventas_incremental_parquet" # Checkpoint location
-        CHECKPOINT_LOCATION = "wasbs://databricks-projects@databrickslearningsamp.blob.core.windows.net/Flight_Delays/data/checkpoint/" # Checkpoint location
-        TARGET_OUTPUT_PATH = "wasbs://databricks-projects@databrickslearningsamp.blob.core.windows.net/Flight_Delays/data/bronze_autoloader/"
+        #CHECKPOINT_LOCATION = "wasbs://databricks-projects@databrickslearningsamp.blob.core.windows.net/Flight_Delays/data/checkpoint/" # Checkpoint location
+        #TARGET_OUTPUT_PATH = "wasbs://databricks-projects@databrickslearningsamp.blob.core.windows.net/Flight_Delays/data/bronze_autoloader/"
 
-        input_path = sas_details["source_path"] #+ "raw/tests/" 
+        #input_path = dataset_sas_details["source_path"] #+ "raw/tests/" 
         # Asume que tus ficheros de datos están en /data/raw/ventas/ dentro del blob
 
-        logging.info(f"Ruta de origen para Auto Loader: {input_path}")
+        logging.info(f"Ruta de origen para Auto Loader: {datasetInputPath}")
 
-
+        """
         # 2. Configuración de Auto Loader para leer Parquet
         autoloader_options = {
             "cloudFiles.format": "parquet",#"**parquet**", # ⬅️ Formato de lectura ajustado a PARQUET
@@ -58,23 +58,18 @@ def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dat
             #"cloudFiles.allowCdcSchemaEvolution": "true",
             "cloudFiles.rescuedDataColumn": "_rescued_data" 
         }
-        """ 
-        df_raw=spark.read.format("parquet") \
-          .option("header", "true") \
-          .option("inferSchema", "true") \
-          .load(input_path)
-        
         """
+
         # 3. Leer los datos
         logging.info(f"Se va a proceder a leer/creado el dataset de entrada")
         df_input = (
             spark.readStream
             .format("cloudFiles")
-            .options(**autoloader_options)
-            .load(input_path)
+            .options(**autoloaderOptions)
+            .load(datasetInputPath)
         )
         logging.info(f"DataFrame de entrada df_input creado.")
-        logging.info(f"El esquema del dataset de entrada ({input_path}) es: {df_input.printSchema()} ")
+        logging.info(f"El esquema del dataset de entrada ({datasetInputPath}) es: {df_input.printSchema()} ")
                 
         logging.info(f"Se va a proceder a crear el dataset de salida y realizar las operaciones en caso de que sea necesario")
         #Añadimos columna current timestamp
@@ -87,8 +82,8 @@ def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dat
         logging.info(f"Se va a proceder a lanzar el proceso de streaming")
         df_output=(df.writeStream
             .format("parquet") # ⬅️ Formato de escritura ajustado a PARQUET
-            .option("path", TARGET_OUTPUT_PATH) # Especificar la ruta de destino
-            .option("checkpointLocation", CHECKPOINT_LOCATION) 
+            .option("path", datasetOuputPath) # Especificar la ruta de destino
+            .option("checkpointLocation", checkpointPath) 
             .outputMode("append")                            
             .trigger(availableNow=True)                      
             .start() # Usamos .start() para iniciar el streaming
@@ -180,8 +175,7 @@ def main():
 
         # 4. Se  va a proceder con la ingestion de los datos
         logging.info(f"4. Se  va a proceder con la ingestion de los datos")
-        bronze_ingestion(storage_account_name, dataset_sas_details,
-                        datasetConfiguration['datasetContainer'],datasetConfiguration['datasetInputPath'],datasetConfiguration['datasetOuputPath'])
+        bronze_ingestion(dataset_sas_details,  configJSON['datasetInputPath'],  configJSON['datasetOuputPath'], configJSON['checkpointPath'], configJSON['autoloaderOptions'])
 
         
         

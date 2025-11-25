@@ -63,7 +63,7 @@ def readJsonFromBlobWithSas(storage_account_name: str, container_name: str, blob
     )
 
     try:
-        print(f"Intentando descargar la configuración desde: {blob_path}...")
+        print(f"Intentando descargar la configuración desde: {blob_url}...")
         
         # 3. Descargar el contenido del blob (lectura estática y única)
         # El método download_blob descarga el contenido del blob.
@@ -82,4 +82,4 @@ def readJsonFromBlobWithSas(storage_account_name: str, container_name: str, blob
     except Exception as e:
         # Capturar cualquier error (conexión, 404 Not Found, fallo de parsing JSON, etc.)
         # y levantar una excepción clara.
-        raise RuntimeError(f"ERROR al leer la configuración JSON en '{blob_path}' desde Azure Blob Storage (SAS): {e}")
+        raise RuntimeError(f"ERROR al leer la configuración JSON en '{blob_url}' desde Azure Blob Storage (SAS): {e}")

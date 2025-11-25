@@ -78,14 +78,14 @@ def bronze_ingestion(storage_account_name,sas_details,dataset_container_name,dat
                 
         logging.info(f"Se va a proceder a crear el dataset de salida y realizar las operaciones en caso de que sea necesario")
         #Añadimos columna current timestamp
-        df_output=df_input.select(
+        df=df_input.select(
             current_date().alias("ingestion_date"), 
             *df_input.columns
         )
 
 
         logging.info(f"Se va a proceder a lanzar el proceso de streaming")
-        (df_output.writeStream
+        df_output=(df.writeStream
             .format("parquet") # ⬅️ Formato de escritura ajustado a PARQUET
             .option("path", TARGET_OUTPUT_PATH) # Especificar la ruta de destino
             .option("checkpointLocation", CHECKPOINT_LOCATION) 

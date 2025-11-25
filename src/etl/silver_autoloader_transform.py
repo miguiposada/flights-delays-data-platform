@@ -42,7 +42,6 @@ def silver_autoloader_transform(dataset_sas_details, datasetInputPath, datasetOu
         df_input = (
             spark.readStream
             .format("cloudFiles")
-            .schema(silver_flightDelays_schema)
             .options(**autoloaderOptions)
             .load(datasetInputPath)
         )

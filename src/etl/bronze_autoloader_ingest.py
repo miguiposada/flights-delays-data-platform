@@ -69,12 +69,14 @@ def bronze_ingestion(dataset_sas_details, datasetInputPath, datasetOuputPath, ch
             .load(datasetInputPath)
         )
         logging.info(f"DataFrame de entrada df_input creado.")
-        logging.info(f"El esquema del dataset de entrada ({datasetInputPath}) es: {df_input.printSchema()} ")
-                
+        logging.info(f"El esquema del dataset de entrada ({datasetInputPath}) es el siguiente: ")
+        df_input.printSchema()
+
         logging.info(f"Se va a proceder a crear el dataset de salida y realizar las operaciones en caso de que sea necesario")
         #Añadimos columna current timestamp
         df=df_input.select(
             current_date().alias("ingestion_date"), 
+            current_timestamp().alias("ingestion_timestamp"),
             *df_input.columns
         )
 
@@ -93,44 +95,6 @@ def bronze_ingestion(dataset_sas_details, datasetInputPath, datasetOuputPath, ch
         
         df_output.awaitTermination()
         logging.info(f"El dataset se ha leido correctamente y el stream ha finalizado (availableNow=True).")
-
-
-        """ 
-        # 4. Aplicar transformaciones básicas (Opcional)
-         # Agregar columnas de metadatos: fecha de ingesta, nombre del archivo, etc.
-        #Añadimos columna current timestamp
-        df_output=df_input.select(
-            current_date().alias("ingestion_date"),  # primera columna
-            *df_input.columns                    # resto de columnas
-        )
-        df_output.show(5)        # Muestra las primeras 5 filas
-        df_output.printSchema()
-
-        logging.info("- Se ha añadido la columna ingestion_date al dataset")
-        logging.info(f"El dataset de salida tiene: {df_output.count()} filas")
-        
-        ingestion_date = datetime.now().strftime("%Y_%m_%d")
-
-        
-        dataset_output_path = dataset_output_path.replace('YYYY_MM_DD', ingestion_date)
-        logging.info(f"- Se va a proceder a guardar el archivo correspondiente en el ruta {dataset_output_path}")
-        
-
-        # 5. Escribir los datos en formato Parquet en la ubicación de destino
-        print(f"Escribiendo en la ruta de destino (Parquet): {TARGET_OUTPUT_PATH}")
-
-        (
-            df_output.writeStream
-            .format("**parquet**") # ⬅️ Formato de escritura ajustado a PARQUET
-            .option("path", TARGET_OUTPUT_PATH) # Especificar la ruta de destino
-            .option("checkpointLocation", CHECKPOINT_LOCATION) 
-            .outputMode("append")                            
-            .trigger(availableNow=True)                      
-            .start() # Usamos .start() para iniciar el streaming
-        ).awaitTermination() # Espera a que el proceso termine (ya que usamos availableNow=True)
-
-        print("Extracción incremental con Auto Loader finalizada y escrita en formato Parquet.")
-        """
 
     except Exception as e:
         logging.error(f"Ocurrió un error al extraer los datos: {e}")

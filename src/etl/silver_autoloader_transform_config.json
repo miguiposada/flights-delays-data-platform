@@ -1,0 +1,19 @@
+{
+    "datasetConfiguration":{
+        "datasetStorageAccount":"databrickslearningsamp",
+        "datasetContainer":"databricks-projects",
+        "datasetKeyVaultName":"databrickslearningkvmp",
+        "SasTokenSecretName":"databrickslearningsecretmp-SasToken-datasets",
+        "datasetInputPath":"wasbs://databricks-projects@databrickslearningsamp.blob.core.windows.net/Flight_Delays/data/bronze_autoloader/tests/",
+        "datasetOuputPath":"wasbs://databricks-projects@databrickslearningsamp.blob.core.windows.net/Flight_Delays/data/silver_autoloader/",
+        "checkpointPath":"wasbs://databricks-projects@databrickslearningsamp.blob.core.windows.net/Flight_Delays/data/checkpoint/"
+
+    },
+    "autoloaderOptions":{
+        "cloudFiles.format": "parquet",
+        "cloudFiles.schemaLocation": "wasbs://databricks-projects@databrickslearningsamp.blob.core.windows.net/Flight_Delays/data/checkpoint/schema/",
+        "cloudFiles.maxFilesPerTrigger": "100",
+        "cloudFiles.inferColumnTypes": "true",
+        "cloudFiles.rescuedDataColumn": "_rescued_data" 
+    }
+}

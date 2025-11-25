@@ -1,6 +1,5 @@
 import sys
 
-from datetime import datetime
 
 #Importamos las librerias
 from pyspark.sql.functions import *
@@ -8,7 +7,6 @@ from pyspark.sql.types import *
 from pyspark.sql import SparkSession
 
 from utils.read_json_from_blob import readJsonFromBlobWithSas
-from utils.read_azure_secret import readAzureSecret
 from utils.create_sas_conection import get_sas_details, configure_sas_access
 
 import logging
@@ -22,9 +20,9 @@ logging.info("-Se han importado las librerias")
 
 
 
-def bronze_ingestion(dataset_sas_details, datasetInputPath, datasetOuputPath, checkpointPath, autoloaderOptions):
+def bronze_autoloader_ingestion(dataset_sas_details, datasetInputPath, datasetOuputPath, checkpointPath, autoloaderOptions):
     try:
-        logging.info("--> bronze_ingestion: Comienza el metodo bronze_ingestion")
+        logging.info("--> bronze_autoloader_ingestion: Comienza el metodo bronze_ingestion")
         
         spark = SparkSession.builder.appName("ExtraccionDatabronze_ingestionbricks").getOrCreate()
         logging.info("- Se ha creado la sesion de spark")
@@ -32,20 +30,6 @@ def bronze_ingestion(dataset_sas_details, datasetInputPath, datasetOuputPath, ch
         configure_sas_access(spark, dataset_sas_details) 
         logging.info(f"Se ha configurado la conexion SAS")
         
-        
-        
-        
-        
-        
-        #PATHS Y VARIABLES
-
-        #CHECKPOINT_LOCATION = "/mnt/datalake/autoloader_checkpoints/ventas_incremental_parquet" # Checkpoint location
-        #CHECKPOINT_LOCATION = "wasbs://databricks-projects@databrickslearningsamp.blob.core.windows.net/Flight_Delays/data/checkpoint/" # Checkpoint location
-        #TARGET_OUTPUT_PATH = "wasbs://databricks-projects@databrickslearningsamp.blob.core.windows.net/Flight_Delays/data/bronze_autoloader/"
-
-        #input_path = dataset_sas_details["source_path"] #+ "raw/tests/" 
-        # Asume que tus ficheros de datos están en /data/raw/ventas/ dentro del blob
-
         logging.info(f"Ruta de origen para Auto Loader: {datasetInputPath}")
 
         """
@@ -86,7 +70,7 @@ def bronze_ingestion(dataset_sas_details, datasetInputPath, datasetOuputPath, ch
             .format("parquet") # ⬅️ Formato de escritura ajustado a PARQUET
             .option("path", datasetOuputPath) # Especificar la ruta de destino
             .option("checkpointLocation", checkpointPath) 
-            .partitionBy("ingestion_date")
+            .partitionBy("ingestion_timestamp")
             .outputMode("append")                            
             .trigger(availableNow=True)                      
             .start() # Usamos .start() para iniciar el streaming
@@ -140,7 +124,7 @@ def main():
 
         # 4. Se  va a proceder con la ingestion de los datos
         logging.info(f"4. Se  va a proceder con la ingestion de los datos")
-        bronze_ingestion(dataset_sas_details,  datasetConfiguration['datasetInputPath'],  datasetConfiguration['datasetOuputPath'], datasetConfiguration['checkpointPath'], configJSON['autoloaderOptions'])
+        bronze_autoloader_ingestion(dataset_sas_details, datasetConfiguration['datasetInputPath'],  datasetConfiguration['datasetOuputPath'], datasetConfiguration['checkpointPath'], configJSON['autoloaderOptions'])
 
         
         

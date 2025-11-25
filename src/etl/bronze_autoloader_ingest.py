@@ -24,7 +24,7 @@ logging.info("-Se han importado las librerias")
 
 def bronze_ingestion(dataset_sas_details, datasetInputPath, datasetOuputPath, checkpointPath, autoloaderOptions):
     try:
-        logging.info("- bronze_ingestion --> Comienza el metodo bronze_ingestion")
+        logging.info("--> bronze_ingestion: Comienza el metodo bronze_ingestion")
         
         spark = SparkSession.builder.appName("ExtraccionDatabronze_ingestionbricks").getOrCreate()
         logging.info("- Se ha creado la sesion de spark")
@@ -175,7 +175,7 @@ def main():
 
         # 4. Se  va a proceder con la ingestion de los datos
         logging.info(f"4. Se  va a proceder con la ingestion de los datos")
-        bronze_ingestion(dataset_sas_details,  configJSON['datasetInputPath'],  configJSON['datasetOuputPath'], configJSON['checkpointPath'], configJSON['autoloaderOptions'])
+        bronze_ingestion(dataset_sas_details,  datasetConfiguration['datasetInputPath'],  datasetConfiguration['datasetOuputPath'], datasetConfiguration['checkpointPath'], configJSON['autoloaderOptions'])
 
         
         

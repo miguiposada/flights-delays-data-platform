@@ -48,7 +48,7 @@ def bronze_autoloader_ingestion(dataset_sas_details, datasetInputPath, datasetOu
         logging.info(f"Se va a proceder a leer/creado el dataset de entrada")
         df_input = (
             spark.readStream
-            .format("delta")
+            .format("cloudFiles")
             .options(**autoloaderOptions)
             .load(datasetInputPath)
         )

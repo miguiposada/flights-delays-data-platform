@@ -41,7 +41,7 @@ def silver_autoloader_transform(dataset_sas_details, datasetInputPath, datasetOu
         logging.info(f"Se va a proceder a leer/creado el dataset de entrada")
         df_input = (
             spark.readStream
-            .format("cloudFiles")
+            .format("delta")
             .options(**autoloaderOptions)
             .load(datasetInputPath)
         )

@@ -54,7 +54,7 @@ def silver_autoloader_transform(dataset_sas_details, datasetInputPath, datasetOu
         
         logging.info(f"Se va a proceder a lanzar el proceso de streaming")
         df_output=(df.writeStream
-            .format("parquet") # ⬅️ Formato de escritura ajustado a PARQUET
+            .format("delta") # ⬅️ Formato de escritura ajustado a PARQUET
             .option("path", datasetOuputPath) # Especificar la ruta de destino
             .option("checkpointLocation", checkpointPath) 
             #.partitionBy("ingestion_date")

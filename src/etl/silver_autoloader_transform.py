@@ -57,7 +57,7 @@ def silver_autoloader_transform(dataset_sas_details, datasetInputPath, datasetOu
             .format("parquet") # ⬅️ Formato de escritura ajustado a PARQUET
             .option("path", datasetOuputPath) # Especificar la ruta de destino
             .option("checkpointLocation", checkpointPath) 
-            .partitionBy("ingestion_date")
+            #.partitionBy("ingestion_date")
             .outputMode("append")                            
             .trigger(availableNow=True)                      
             .start() # Usamos .start() para iniciar el streaming

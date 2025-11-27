@@ -69,7 +69,6 @@ def silver_autoloader_transform(dataset_sas_details, inputConfiguration, outputC
                 .option("checkpointLocation", checkpointPath) 
                 .outputMode(outputMode)                            
                 .trigger(availableNow=True)                      
-                .start() # Usamos .start() para iniciar el streaming
             )
 
         if 'partitionBy' in outputConfiguration:

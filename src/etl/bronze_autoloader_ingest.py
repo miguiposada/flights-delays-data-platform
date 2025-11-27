@@ -82,12 +82,10 @@ def bronze_autoloader_ingestion(dataset_sas_details, inputConfiguration, outputC
                 .option("checkpointLocation", checkpointPath) 
                 .outputMode(outputMode)                            
                 .trigger(availableNow=True)                      
-                .start() # Usamos .start() para iniciar el streaming
             )
-
         if 'partitionBy' in outputConfiguration:
             write_stream = write_stream.partitionBy(outputConfiguration['partitionBy'])
-        
+
         df_output = write_stream.start()
         logging.info(f"El proceso de streaming ha sido iniciado.")
         

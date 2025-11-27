@@ -78,7 +78,6 @@ def gold_autoloader_aggregation(dataset_sas_details, inputConfiguration, outputC
                 .option("checkpointLocation", checkpointPath) 
                 .outputMode(outputMode)                            
                 .trigger(availableNow=True)                      
-                .start() # Usamos .start() para iniciar el streaming
             )
 
         if 'partitionBy' in outputConfiguration:

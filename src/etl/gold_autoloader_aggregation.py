@@ -52,7 +52,7 @@ def gold_autoloader_aggregation(dataset_sas_details, inputConfiguration, outputC
 
         
         #Agregaciones
-
+        df_input=df.withWatermark("eventTime", "10 minutes")
         df = df_input.groupBy("Year", "Month", "DayofMonth","OriginCityName","DestCityName").agg(
             count("*").alias("flights_count"),
             avg("DepDelayMinutes").alias("avg_dep_delay_minutes"),

@@ -191,7 +191,7 @@ def main():
 
         #silver_autoloader_transform(storage_account_name, storage_account_access_key,
         #                configJSON['dataset_container_name'],configJSON['dataset_input_path'],configJSON['dataset_output_path'])
-        silver_autoloader_transform(dataset_sas_details, configJSON['inputConfiguration'],  configJSON['outputConfiguration'])
+        silver_autoloader_transform(dataset_sas_details, configJSON['streamConfiguration']['inputConfiguration'],  configJSON['streamConfiguration']['outputConfiguration'])
 
     except Exception as e:
         logging.error(f"Ocurrió un error: {e}")

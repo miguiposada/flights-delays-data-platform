@@ -192,7 +192,7 @@ def main():
         # 4. Se  va a proceder con la ingestion de los datos
         logging.info(f"4. Se  va a proceder con la ingestion de los datos")
         
-        gold_autoloader_aggregation(dataset_sas_details, configJSON['inputConfiguration'],  configJSON['outputConfiguration'])
+        gold_autoloader_aggregation(dataset_sas_details, configJSON['streamConfiguration']['inputConfiguration'],  configJSON['streamConfiguration']['outputConfiguration'])
 
 
     except Exception as e:

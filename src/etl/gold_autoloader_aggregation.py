@@ -52,8 +52,8 @@ def gold_autoloader_aggregation(dataset_sas_details, inputConfiguration, outputC
 
         
         #Agregaciones
-        df_input=df.withWatermark("eventTime", "10 minutes")
-        df = df_input.groupBy("Year", "Month", "DayofMonth","OriginCityName","DestCityName").agg(
+        df=df_input.withWatermark("eventTime", "10 minutes")
+        df = df.groupBy("Year", "Month", "DayofMonth","OriginCityName","DestCityName").agg(
             count("*").alias("flights_count"),
             avg("DepDelayMinutes").alias("avg_dep_delay_minutes"),
             sum(when(col("ArrDelayMinutes") > 15, 1).otherwise(0)).alias("% vuelos con delay >15min"),
@@ -77,7 +77,7 @@ def gold_autoloader_aggregation(dataset_sas_details, inputConfiguration, outputC
                 .partitionBy(outputConfiguration['partitionBy'])
                 .outputMode(outputMode)                            
                 .trigger(availableNow=True)                      
-                .start() # Usamos .start() para iniciar el streaming
+                .start() 
             )
 
         else:
@@ -88,7 +88,7 @@ def gold_autoloader_aggregation(dataset_sas_details, inputConfiguration, outputC
                 .option("checkpointLocation", checkpointPath) 
                 .outputMode(outputMode)                            
                 .trigger(availableNow=True)                      
-                .start() # Usamos .start() para iniciar el streaming
+                .start() 
             )
 
         logging.info(f"El proceso de streaming ha sido iniciado.")

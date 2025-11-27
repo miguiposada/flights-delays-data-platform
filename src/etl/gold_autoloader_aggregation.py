@@ -50,17 +50,17 @@ def gold_autoloader_aggregation(dataset_sas_details, inputConfiguration, outputC
         df_input.printSchema()
 
 
-        """         
+        
         #Agregaciones
 
-        df_output = df_input.groupBy("Year", "Month", "DayofMonth","OriginCityName","DestCityName").agg(
+        df = df_input.groupBy("Year", "Month", "DayofMonth","OriginCityName","DestCityName").agg(
             count("*").alias("flights_count"),
             avg("DepDelayMinutes").alias("avg_dep_delay_minutes"),
             sum(when(col("ArrDelayMinutes") > 15, 1).otherwise(0)).alias("% vuelos con delay >15min"),
             avg("TaxiOut").alias("avg_taxi_out"),
             avg("TaxiIn").alias("avg_taxi_in")
         )
-        """
+        
 
         logging.info(f"Se va a proceder a lanzar el proceso de streaming")
         outputFormat=outputConfiguration['format'] if 'format' in outputConfiguration else "cloudFiles"
@@ -70,7 +70,7 @@ def gold_autoloader_aggregation(dataset_sas_details, inputConfiguration, outputC
 
 
         if 'partitionBy' in outputConfiguration:
-            df_output=(df_input.writeStream
+            df_output=(df.writeStream
                 .format(outputFormat) # ⬅️ Formato de escritura ajustado a PARQUET
                 .option("path", datasetOuputPath) # Especificar la ruta de destino
                 .option("checkpointLocation", checkpointPath) 
@@ -82,7 +82,7 @@ def gold_autoloader_aggregation(dataset_sas_details, inputConfiguration, outputC
 
         else:
 
-            df_output=(df_input.writeStream
+            df_output=(df.writeStream
                 .format(outputFormat) # ⬅️ Formato de escritura ajustado a PARQUET
                 .option("path", datasetOuputPath) # Especificar la ruta de destino
                 .option("checkpointLocation", checkpointPath) 
@@ -90,7 +90,7 @@ def gold_autoloader_aggregation(dataset_sas_details, inputConfiguration, outputC
                 .trigger(availableNow=True)                      
                 .start() # Usamos .start() para iniciar el streaming
             )
-            
+
         logging.info(f"El proceso de streaming ha sido iniciado.")
         
         df_output.awaitTermination()

@@ -1,0 +1,30 @@
+{
+    "datasetSecurityConfiguration":{
+        "datasetStorageAccount":"databrickslearningsamp",
+        "datasetContainer":"databricks-projects",
+        "datasetKeyVaultName":"databrickslearningkvmp",
+        "SasTokenSecretName":"databrickslearningsecretmp-SasToken-datasets"
+    },
+    "streamConfiguration":{
+        "inputConfiguration":{
+            "format":"delta",
+            "autoloaderOptions":{
+                "cloudFiles.format": "parquet",
+                "cloudFiles.schemaLocation": "wasbs://databricks-projects@databrickslearningsamp.blob.core.windows.net/Flight_Delays/data/autoloader/checkpoint/gold/schema/",
+                "cloudFiles.maxFilesPerTrigger": "100",
+                "cloudFiles.inferColumnTypes": "true",
+                "cloudFiles.rescuedDataColumn": "_rescued_data" 
+            },
+            "datasetInputPath":"wasbs://databricks-projects@databrickslearningsamp.blob.core.windows.net/Flight_Delays/data/autoloader/silver/"
+
+        },
+        "outputConfiguration":{
+            "format":"delta",
+            "datasetOuputPath":"wasbs://databricks-projects@databrickslearningsamp.blob.core.windows.net/Flight_Delays/data/autoloader/gold/",
+            "checkpointPath":"wasbs://databricks-projects@databrickslearningsamp.blob.core.windows.net/Flight_Delays/data/autoloader/checkpoint/gold/",
+            "outputMode":"append",
+            "partitionBy":["OriginCityName"]
+        }
+    }
+    
+}

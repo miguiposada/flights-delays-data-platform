@@ -139,9 +139,9 @@ def main():
 
         # 3. Obtener detalles de la conexión Sas para acceder a los datasets
         logging.info(f"3. A partir de los datos del fichero de configuracion se va a proceder a recuperar la configuracion sas para acceder a los datasets")
-        datasetConfiguration=configJSON['datasetConfiguration']
-        dataset_sas_details = get_sas_details(datasetConfiguration['datasetStorageAccount'],datasetConfiguration['datasetContainer'],
-                                               datasetConfiguration['datasetKeyVaultName'], datasetConfiguration['SasTokenSecretName'])#, datasetConfiguration['SasPath'])
+        datasetSecurityConfiguration=configJSON['datasetSecurityConfiguration']        
+        dataset_sas_details = get_sas_details(datasetSecurityConfiguration['datasetStorageAccount'],datasetSecurityConfiguration['datasetContainer'],
+                                               datasetSecurityConfiguration['datasetKeyVaultName'], datasetSecurityConfiguration['SasTokenSecretName'])#, datasetConfiguration['SasPath'])
         logging.info(f"Los dataset_sas_details details son: {dataset_sas_details}")
 
         # 4. Se  va a proceder con la ingestion de los datos

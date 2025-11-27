@@ -20,7 +20,7 @@ logging.info("-Se han importado las librerias")
 
 
 
-def bronze_autoloader_ingestion(dataset_sas_details, datasetInputPath, datasetOuputPath, checkpointPath, autoloaderOptions):
+def bronze_autoloader_ingestion(dataset_sas_details, inputConfiguration, outputConfiguration):
     try:
         logging.info("--> bronze_autoloader_ingestion: Comienza el metodo bronze_ingestion")
         
@@ -29,7 +29,12 @@ def bronze_autoloader_ingestion(dataset_sas_details, datasetInputPath, datasetOu
 
         configure_sas_access(spark, dataset_sas_details) 
         logging.info(f"Se ha configurado la conexion SAS")
-        
+
+        inputFormat=inputConfiguration['format'] if 'format' in inputConfiguration else "cloudFiles"
+        datasetInputPath=inputConfiguration['datasetInputPath']
+        autoloaderOptions=inputConfiguration['autoloaderOptions']
+
+
         logging.info(f"Ruta de origen para Auto Loader: {datasetInputPath}")
 
         """
@@ -48,7 +53,7 @@ def bronze_autoloader_ingestion(dataset_sas_details, datasetInputPath, datasetOu
         logging.info(f"Se va a proceder a leer/creado el dataset de entrada")
         df_input = (
             spark.readStream
-            .format("cloudFiles")
+            .format(inputFormat)
             .options(**autoloaderOptions)
             .load(datasetInputPath)
         )
@@ -66,15 +71,32 @@ def bronze_autoloader_ingestion(dataset_sas_details, datasetInputPath, datasetOu
 
 
         logging.info(f"Se va a proceder a lanzar el proceso de streaming")
-        df_output=(df.writeStream
-            .format("delta") # ⬅️ Formato de escritura ajustado a PARQUET
-            .option("path", datasetOuputPath) # Especificar la ruta de destino
-            .option("checkpointLocation", checkpointPath) 
-            .partitionBy("fecha")
-            .outputMode("append")                            
-            .trigger(availableNow=True)                      
-            .start() # Usamos .start() para iniciar el streaming
-        )
+        outputFormat=outputConfiguration['format'] if 'format' in outputConfiguration else "cloudFiles"
+        datasetOuputPath=outputConfiguration['datasetOuputPath']
+        checkpointPath=outputConfiguration['checkpointPath']
+        outputMode=outputConfiguration['outputMode'] if 'outputMode' in outputConfiguration else "append"
+
+        if 'partitionBy' in outputConfiguration:
+            df_output=(df.writeStream
+                .format(outputFormat) # ⬅️ Formato de escritura ajustado a PARQUET
+                .option("path", datasetOuputPath) # Especificar la ruta de destino
+                .option("checkpointLocation", checkpointPath) 
+                .partitionBy(outputConfiguration['partitionBy'])
+                .outputMode(outputMode)                            
+                .trigger(availableNow=True)                      
+                .start() # Usamos .start() para iniciar el streaming
+            )
+
+        else:
+
+            df_output=(df.writeStream
+                .format(outputFormat) # ⬅️ Formato de escritura ajustado a PARQUET
+                .option("path", datasetOuputPath) # Especificar la ruta de destino
+                .option("checkpointLocation", checkpointPath) 
+                .outputMode(outputMode)                            
+                .trigger(availableNow=True)                      
+                .start() # Usamos .start() para iniciar el streaming
+            )
         logging.info(f"El proceso de streaming ha sido iniciado.")
         
         df_output.awaitTermination()
@@ -124,7 +146,7 @@ def main():
 
         # 4. Se  va a proceder con la ingestion de los datos
         logging.info(f"4. Se  va a proceder con la ingestion de los datos")
-        bronze_autoloader_ingestion(dataset_sas_details, datasetConfiguration['datasetInputPath'],  datasetConfiguration['datasetOuputPath'], datasetConfiguration['checkpointPath'], configJSON['autoloaderOptions'])
+        bronze_autoloader_ingestion(dataset_sas_details, configJSON['streamConfiguration']['inputConfiguration'],  configJSON['streamConfiguration']['outputConfiguration'])
 
         
         

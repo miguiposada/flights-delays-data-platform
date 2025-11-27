@@ -68,15 +68,29 @@ def gold_autoloader_aggregation(dataset_sas_details, inputConfiguration, outputC
         checkpointPath=outputConfiguration['checkpointPath']
         outputMode=outputConfiguration['outputMode'] if 'outputMode' in outputConfiguration else "append"
 
-        df_output=(df_input.writeStream
-            .format(outputFormat) # ⬅️ Formato de escritura ajustado a PARQUET
-            .option("path", datasetOuputPath) # Especificar la ruta de destino
-            .option("checkpointLocation", checkpointPath) 
-            #.partitionBy("ingestion_date")
-            .outputMode(outputMode)                            
-            .trigger(availableNow=True)                      
-            .start() # Usamos .start() para iniciar el streaming
-        )
+
+        if 'partitionBy' in outputConfiguration:
+            df_output=(df_input.writeStream
+                .format(outputFormat) # ⬅️ Formato de escritura ajustado a PARQUET
+                .option("path", datasetOuputPath) # Especificar la ruta de destino
+                .option("checkpointLocation", checkpointPath) 
+                .partitionBy(outputConfiguration['partitionBy'])
+                .outputMode(outputMode)                            
+                .trigger(availableNow=True)                      
+                .start() # Usamos .start() para iniciar el streaming
+            )
+
+        else:
+
+            df_output=(df_input.writeStream
+                .format(outputFormat) # ⬅️ Formato de escritura ajustado a PARQUET
+                .option("path", datasetOuputPath) # Especificar la ruta de destino
+                .option("checkpointLocation", checkpointPath) 
+                .outputMode(outputMode)                            
+                .trigger(availableNow=True)                      
+                .start() # Usamos .start() para iniciar el streaming
+            )
+            
         logging.info(f"El proceso de streaming ha sido iniciado.")
         
         df_output.awaitTermination()

@@ -25,7 +25,7 @@ print(sys.argv)
 
 
 
-def silver_autoloader_transform(dataset_sas_details, datasetInputPath, datasetOuputPath, checkpointPath, autoloaderOptions):
+def silver_autoloader_transform(dataset_sas_details, inputConfiguration, outputConfiguration):
     try:
         logging.info("--> silver_autoloader_transform: Comienza el metodo bronze_ingestion")
         
@@ -35,13 +35,18 @@ def silver_autoloader_transform(dataset_sas_details, datasetInputPath, datasetOu
         configure_sas_access(spark, dataset_sas_details) 
         logging.info(f"Se ha configurado la conexion SAS")
         
+        inputFormat=inputConfiguration['format'] if 'format' in inputConfiguration else "cloudFiles"
+        datasetInputPath=inputConfiguration['datasetInputPath']
+        autoloaderOptions=inputConfiguration['autoloaderOptions']
+        
+        
         logging.info(f"Ruta de origen para Auto Loader: {datasetInputPath}")
 
         # 3. Leer los datos
         logging.info(f"Se va a proceder a leer/creado el dataset de entrada")
         df_input = (
             spark.readStream
-            .format("delta")
+            .format(inputFormat)
             .options(**autoloaderOptions)
             .load(datasetInputPath)
         )
@@ -53,12 +58,17 @@ def silver_autoloader_transform(dataset_sas_details, datasetInputPath, datasetOu
         df = df_input.dropDuplicates(["FlightDate", "Marketing_Airline_Network", "OriginCityName", "DestCityName", "CRSDepTime"])
         
         logging.info(f"Se va a proceder a lanzar el proceso de streaming")
+        outputFormat=outputConfiguration['format'] if 'format' in outputConfiguration else "cloudFiles"
+        datasetOuputPath=outputConfiguration['datasetOuputPath']
+        checkpointPath=outputConfiguration['checkpointPath']
+        outputMode=outputConfiguration['outputMode'] if 'outputMode' in outputConfiguration else "append"
+
         df_output=(df.writeStream
-            .format("delta") # ⬅️ Formato de escritura ajustado a PARQUET
+            .format(outputFormat) # ⬅️ Formato de escritura ajustado a PARQUET
             .option("path", datasetOuputPath) # Especificar la ruta de destino
             .option("checkpointLocation", checkpointPath) 
             #.partitionBy("ingestion_date")
-            .outputMode("append")                            
+            .outputMode(outputMode)                            
             .trigger(availableNow=True)                      
             .start() # Usamos .start() para iniciar el streaming
         )
@@ -170,9 +180,9 @@ def main():
 
         # 3. Obtener detalles de la conexión Sas para acceder a los datasets
         logging.info(f"3. A partir de los datos del fichero de configuracion se va a proceder a recuperar la configuracion sas para acceder a los datasets")
-        datasetConfiguration=configJSON['datasetConfiguration']
-        dataset_sas_details = get_sas_details(datasetConfiguration['datasetStorageAccount'],datasetConfiguration['datasetContainer'],
-                                               datasetConfiguration['datasetKeyVaultName'], datasetConfiguration['SasTokenSecretName'])#, datasetConfiguration['SasPath'])
+        datasetSecurityConfiguration=configJSON['datasetSecurityConfiguration']
+        dataset_sas_details = get_sas_details(datasetSecurityConfiguration['datasetStorageAccount'],datasetSecurityConfiguration['datasetContainer'],
+                                               datasetSecurityConfiguration['datasetKeyVaultName'], datasetSecurityConfiguration['SasTokenSecretName'])#, datasetConfiguration['SasPath'])
         logging.info(f"Los dataset_sas_details details son: {dataset_sas_details}")
 
         # 4. Se  va a proceder con la ingestion de los datos
@@ -181,7 +191,7 @@ def main():
 
         #silver_autoloader_transform(storage_account_name, storage_account_access_key,
         #                configJSON['dataset_container_name'],configJSON['dataset_input_path'],configJSON['dataset_output_path'])
-        silver_autoloader_transform(dataset_sas_details, datasetConfiguration['datasetInputPath'],  datasetConfiguration['datasetOuputPath'], datasetConfiguration['checkpointPath'], configJSON['autoloaderOptions'])
+        silver_autoloader_transform(dataset_sas_details, configJSON['inputConfiguration'],  configJSON['outputConfiguration'])
 
     except Exception as e:
         logging.error(f"Ocurrió un error: {e}")

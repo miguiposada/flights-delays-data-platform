@@ -52,7 +52,10 @@ def gold_autoloader_aggregation(dataset_sas_details, inputConfiguration, outputC
 
         
         #Agregaciones
-        df=df_input.withWatermark("eventTime", "10 minutes")
+        df = df_input.withColumn("eventTime", to_timestamp(concat_ws("-", col("Year"), col("Month"), col("DayofMonth"))))
+
+        # Agregar watermark sobre eventTime
+        df = df.withWatermark("eventTime", "10 minutes")
         df = df.groupBy("Year", "Month", "DayofMonth","OriginCityName","DestCityName").agg(
             count("*").alias("flights_count"),
             avg("DepDelayMinutes").alias("avg_dep_delay_minutes"),

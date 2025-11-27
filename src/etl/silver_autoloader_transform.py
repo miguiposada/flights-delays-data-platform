@@ -58,32 +58,24 @@ def silver_autoloader_transform(dataset_sas_details, inputConfiguration, outputC
         df = df_input.dropDuplicates(["FlightDate", "Marketing_Airline_Network", "OriginCityName", "DestCityName", "CRSDepTime"])
         
         logging.info(f"Se va a proceder a lanzar el proceso de streaming")
-        outputFormat=outputConfiguration['format'] if 'format' in outputConfiguration else "cloudFiles"
+        outputFormat=outputConfiguration['format'] if 'format' in outputConfiguration else "delta"
         datasetOuputPath=outputConfiguration['datasetOuputPath']
         checkpointPath=outputConfiguration['checkpointPath']
         outputMode=outputConfiguration['outputMode'] if 'outputMode' in outputConfiguration else "append"
 
+        write_stream=(df.writeStream
+                .format(outputFormat) # ⬅️ Formato de escritura ajustado a PARQUET
+                .option("path", datasetOuputPath) # Especificar la ruta de destino
+                .option("checkpointLocation", checkpointPath) 
+                .outputMode(outputMode)                            
+                .trigger(availableNow=True)                      
+                .start() # Usamos .start() para iniciar el streaming
+            )
+
         if 'partitionBy' in outputConfiguration:
-            df_output=(df_input.writeStream
-                .format(outputFormat) # ⬅️ Formato de escritura ajustado a PARQUET
-                .option("path", datasetOuputPath) # Especificar la ruta de destino
-                .option("checkpointLocation", checkpointPath) 
-                .partitionBy(outputConfiguration['partitionBy'])
-                .outputMode(outputMode)                            
-                .trigger(availableNow=True)                      
-                .start() # Usamos .start() para iniciar el streaming
-            )
-
-        else:
-
-            df_output=(df_input.writeStream
-                .format(outputFormat) # ⬅️ Formato de escritura ajustado a PARQUET
-                .option("path", datasetOuputPath) # Especificar la ruta de destino
-                .option("checkpointLocation", checkpointPath) 
-                .outputMode(outputMode)                            
-                .trigger(availableNow=True)                      
-                .start() # Usamos .start() para iniciar el streaming
-            )
+            write_stream = write_stream.partitionBy(outputConfiguration['partitionBy'])
+        
+        df_output = write_stream.start()
         logging.info(f"El proceso de streaming ha sido iniciado.")
         
         df_output.awaitTermination()

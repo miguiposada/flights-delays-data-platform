@@ -52,7 +52,7 @@ def gold_autoloader_aggregation(dataset_sas_details, inputConfiguration, outputC
 
         
         #Agregaciones
-        df = df_input.withColumn("eventTime", to_timestamp(concat_ws("-", col("Year"), col("Month"), col("DayofMonth"))))
+        df = df_input.withColumn("eventTime", current_timestamp())
 
         # Agregar watermark sobre eventTime
         df = df.withWatermark("eventTime", "10 minutes")
@@ -66,33 +66,25 @@ def gold_autoloader_aggregation(dataset_sas_details, inputConfiguration, outputC
         
 
         logging.info(f"Se va a proceder a lanzar el proceso de streaming")
-        outputFormat=outputConfiguration['format'] if 'format' in outputConfiguration else "cloudFiles"
+        outputFormat=outputConfiguration['format'] if 'format' in outputConfiguration else "delta"
         datasetOuputPath=outputConfiguration['datasetOuputPath']
         checkpointPath=outputConfiguration['checkpointPath']
         outputMode=outputConfiguration['outputMode'] if 'outputMode' in outputConfiguration else "append"
 
 
+        write_stream=(df.writeStream
+                .format(outputFormat) # ⬅️ Formato de escritura ajustado a PARQUET
+                .option("path", datasetOuputPath) # Especificar la ruta de destino
+                .option("checkpointLocation", checkpointPath) 
+                .outputMode(outputMode)                            
+                .trigger(availableNow=True)                      
+                .start() # Usamos .start() para iniciar el streaming
+            )
+
         if 'partitionBy' in outputConfiguration:
-            df_output=(df.writeStream
-                .format(outputFormat) # ⬅️ Formato de escritura ajustado a PARQUET
-                .option("path", datasetOuputPath) # Especificar la ruta de destino
-                .option("checkpointLocation", checkpointPath) 
-                .partitionBy(outputConfiguration['partitionBy'])
-                .outputMode(outputMode)                            
-                .trigger(availableNow=True)                      
-                .start() 
-            )
-
-        else:
-
-            df_output=(df.writeStream
-                .format(outputFormat) # ⬅️ Formato de escritura ajustado a PARQUET
-                .option("path", datasetOuputPath) # Especificar la ruta de destino
-                .option("checkpointLocation", checkpointPath) 
-                .outputMode(outputMode)                            
-                .trigger(availableNow=True)                      
-                .start() 
-            )
+            write_stream = write_stream.partitionBy(outputConfiguration['partitionBy'])
+        
+        df_output = write_stream.start()
 
         logging.info(f"El proceso de streaming ha sido iniciado.")
         
